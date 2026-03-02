@@ -59,9 +59,6 @@ const Header = () => {
             Explore
           </a>
           <a href="#" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-            Trending
-          </a>
-          <a href="#" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
             Tags
           </a>
         </nav>
@@ -214,7 +211,6 @@ const Header = () => {
             <div className="container mx-auto flex flex-col gap-4 px-4 py-4">
               <a href="/" className="text-sm font-medium text-foreground">Home</a>
               <a href="#" className="text-sm font-medium text-muted-foreground">Explore</a>
-              <a href="#" className="text-sm font-medium text-muted-foreground">Trending</a>
               <a href="#" className="text-sm font-medium text-muted-foreground">Tags</a>
               <div className="flex gap-2 pt-2">
                 <AuthGuardButton size="sm" className="flex-1 gap-2">

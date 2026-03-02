@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Eye, Heart, MessageCircle, Calendar, User, Edit, Trash2, Send, X } from "lucide-react";
+import { ArrowLeft, Eye, Heart, MessageCircle, Calendar, User, Edit, Trash2, Send, X, UserPlus, UserCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
