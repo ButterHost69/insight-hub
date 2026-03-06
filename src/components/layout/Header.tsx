@@ -55,12 +55,9 @@ const Header = () => {
           <a href="/" className="text-sm font-medium text-foreground transition-colors hover:text-primary">
             Home
           </a>
-          <a href="#" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+          <Link to="/explore" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
             Explore
-          </a>
-          <a href="#" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-            Tags
-          </a>
+          </Link>
         </nav>
 
         {/* Actions */}
@@ -162,10 +159,14 @@ const Header = () => {
                       </div>
                     </div>
                     <div className="p-1.5">
-                      <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                      <Link
+                        to="/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                      >
                         <User className="h-4 w-4" />
                         Profile
-                      </button>
+                      </Link>
                       <button
                         onClick={() => {
                           logout();
@@ -210,8 +211,7 @@ const Header = () => {
           >
             <div className="container mx-auto flex flex-col gap-4 px-4 py-4">
               <a href="/" className="text-sm font-medium text-foreground">Home</a>
-              <a href="#" className="text-sm font-medium text-muted-foreground">Explore</a>
-              <a href="#" className="text-sm font-medium text-muted-foreground">Tags</a>
+              <Link to="/explore" className="text-sm font-medium text-muted-foreground">Explore</Link>
               <div className="flex gap-2 pt-2">
                 <AuthGuardButton size="sm" className="flex-1 gap-2">
                   <PenSquare className="h-4 w-4" />

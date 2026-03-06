@@ -12,6 +12,8 @@ import SignUp from "./pages/SignUp";
 import BlogDetail from "./pages/BlogDetails";
 import CreateBlog from "./pages/CreateBlog";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
+import Explore from "./pages/Explore";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,8 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/explore" element={<Explore />} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/create-blog" element={<ProtectedRoute><CreateBlog /></ProtectedRoute>} />
               <Route path="/blog/:title" element={<BlogDetail />} />
               <Route path="/edit-blog/:title" element={<ProtectedRoute><CreateBlog /></ProtectedRoute>} />
