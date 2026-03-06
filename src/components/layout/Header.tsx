@@ -104,9 +104,12 @@ const Header = () => {
             variant="ghost"
             size="icon"
             className="relative h-9 w-9 text-muted-foreground hover:text-foreground"
+            asChild
           >
-            <Bell className="h-4 w-4" />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
+            <Link to="/notifications">
+              <Bell className="h-4 w-4" />
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
+            </Link>
           </Button>
 
           {/* Messages */}
