@@ -29,6 +29,7 @@ const App = () => (
               <Route path="/signup" element={<SignUp />} />
               <Route path="/create-blog" element={<ProtectedRoute><CreateBlog /></ProtectedRoute>} />
               <Route path="/blog/:title" element={<BlogDetail />} />
+              <Route path="/edit-blog/:title" element={<ProtectedRoute><CreateBlog /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

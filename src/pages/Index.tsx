@@ -56,16 +56,6 @@ const Index = () => {
       <Header />
       <HeroSection />
 
-      {/* Featured */}
-      <section className="container mx-auto px-4 py-12">
-        <h2 className="font-display text-2xl font-bold text-foreground">Featured Stories</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Hand-picked by our editors</p>
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          {featuredBlogs.map((blog, i) => (
-            <BlogCard key={blog.title || i} blog={blog} index={i} variant="featured" />
-          ))}
-        </div>
-      </section>
 
       {/* Trending */}
       <section className="border-y border-border bg-secondary/30 py-12">
