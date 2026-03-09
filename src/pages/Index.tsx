@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Filter, Github, ExternalLink } from "lucide-react";
+import { Filter, Github, ExternalLink, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 import HeroSection from "@/components/home/HeroSection";
