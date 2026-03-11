@@ -33,7 +33,6 @@ func main() {
 	// Basic middlewares
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-	r.Use(middleware.RequestLogger())
 	r.Use(middleware.CORSMiddleware())
 
 	// Basic health check route

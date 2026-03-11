@@ -1,43 +1,10 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
-
-// RequestLogger provides simple structured logging for each HTTP request.
-func RequestLogger() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		start := time.Now()
-
-		// Process request
-		c.Next()
-
-		status := c.Writer.Status()
-		method := c.Request.Method
-		path := c.Request.URL.Path
-		latency := time.Since(start)
-		clientIP := c.ClientIP()
-
-		// Skip logging for certain paths
-		if path == "/health" || path == "/favicon.ico" {
-			return
-		}
-
-		logMessage := fmt.Sprintf("%-15s | %-6s | %3d | %-30s | %v",
-			clientIP,
-			method,
-			status,
-			path,
-			latency,
-		)
-
-		fmt.Println(logMessage)
-	}
-}
 
 // CORSMiddleware handles Cross-Origin Resource Sharing between frontend and backend.
 func CORSMiddleware() gin.HandlerFunc {
@@ -63,4 +30,3 @@ func CORSMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
