@@ -263,7 +263,7 @@ const Index = () => {
                         {msg.blogs.map((blog, j) => (
                           <a
                             key={j}
-                            href={`/blog/${blog.slug}`}
+                            href={`/blog/${encodeURIComponent(blog.slug)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-xs text-primary hover:underline"

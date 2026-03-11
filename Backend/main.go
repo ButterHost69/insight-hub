@@ -64,6 +64,9 @@ func main() {
 	r.POST("/notifications/read-all", handlers.MarkAllNotificationsRead)
 	r.GET("/notifications/unread-count", handlers.GetUnreadCount)
 
+	// Ask AI
+	r.GET("/askAI", handlers.AskAI)
+
 	addr := fmt.Sprintf(":%d", config.ServerPort)
 	log.Printf("🚀 Web server starting on port %d", config.ServerPort)
 	log.Printf("🔗 Visit: http://localhost:%d", config.ServerPort)

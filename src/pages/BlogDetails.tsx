@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, Eye, Heart, MessageCircle, Calendar, User, Edit, Trash2, Send, X, UserPlus, UserCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,7 +14,26 @@ const BlogDetail = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const blog = location.state?.blog as Blog | undefined;
+  const { title } = useParams<{ title: string }>();
+  const [blog, setBlog] = useState<Blog | undefined>(location.state?.blog as Blog | undefined);
+  const [loading, setLoading] = useState(!location.state?.blog);
+
+  useEffect(() => {
+    if (!blog && title) {
+      fetch(`${API_BASE_URL}/blogs`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.data)) {
+            const foundBlog = data.data.find((b: Blog) => b.title === title);
+            if (foundBlog) {
+              setBlog(foundBlog);
+            }
+          }
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
+  }, [title, blog]);
 
   const [liked, setLiked] = useState(blog?.liked_by?.includes(user?.username || "") ?? false);
   const [likeCount, setLikeCount] = useState(blog?.likes ?? 0);
@@ -182,11 +201,17 @@ const BlogDetail = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto flex flex-col items-center justify-center px-4 py-24">
-          <h1 className="font-display text-2xl font-bold text-foreground">Blog not found</h1>
-          <p className="mt-2 text-muted-foreground">This blog post doesn't exist or has been removed.</p>
-          <Button className="mt-6" onClick={() => navigate("/")}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
-          </Button>
+          {loading ? (
+            <p className="text-muted-foreground">Loading...</p>
+          ) : (
+            <>
+              <h1 className="font-display text-2xl font-bold text-foreground">Blog not found</h1>
+              <p className="mt-2 text-muted-foreground">This blog post doesn't exist or has been removed.</p>
+              <Button className="mt-6" onClick={() => navigate("/")}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+              </Button>
+            </>
+          )}
         </div>
       </div>
     );
