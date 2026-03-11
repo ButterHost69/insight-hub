@@ -8,6 +8,25 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ai-ask:
+    build:
+      context:  ./Backend/ai-ask
+    depends_on: 
+      redis:
+        condition: service_healthy
+
   server:
     build:
       context: .
@@ -16,6 +35,12 @@ services:
       - 6969:6969
     volumes:
       - ./Backend/.env:/app/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+  
+volumes:
+  redis-data:
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to

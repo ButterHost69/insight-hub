@@ -30,3 +30,11 @@
 **/values.dev.yaml
 LICENSE
 README.md
+
+# Python
+Backend/ai-ask/__pycache__/
+Backend/ai-ask/.venv/
+Backend/ai-ask/.env/
+Backend/ai-ask/README.md
+Backend/ai-ask/pyproject.toml
+Backend/ai-ask/*.pyc

@@ -20,7 +20,7 @@ func main() {
 		log.Fatalf("❌ Failed to load configuration: %v", err)
 	}
 
-	// Initialize Firestore database
+	// Initialize Firestore and Connect to Redis database,
 	if err := db.Init(); err != nil {
 		log.Fatalf("❌ Failed to initialize Firestore: %v", err)
 	}
