@@ -1,9 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 
+	"github.com/google/uuid"
+
 	"github.com/gin-gonic/gin"
+	"github.com/prachin77/insight-hub/db"
 	"github.com/prachin77/insight-hub/models"
 )
 
@@ -24,13 +28,34 @@ func AskAI(c *gin.Context) {
 		return
 	}
 
-	response := AskAIResponse{
-		Response: "This is a mock AI response. Integration with actual AI service coming soon. You asked: " + prompt,
-		Blogs: []Blog{
-			{Title: "10 Tips for Better Writing", Slug: "Damn Sone"},
-			{Title: "How to Hook Your Readers", Slug: "how-to-hook-your-readers"},
-		},
+	redis_resp, err := db.SendRedisRequest(models.RedisRequest{
+		ID:          uuid.New().String(),
+		PayloadType: "RAG",
+		Payload:     prompt,
+	})
+
+	if err != nil {
+		c.JSON(
+			http.StatusInternalServerError,
+			AskAIResponse{
+				Response: "Error for Prompt: " + prompt,
+				Blogs:    []Blog{},
+			},
+		)
+		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	var resp AskAIResponse
+	err = json.Unmarshal([]byte(redis_resp.Result), &resp)
+	if err != nil {
+		c.JSON(
+			http.StatusInternalServerError,
+			AskAIResponse{
+				Response: "Error for Prompt: " + prompt,
+				Blogs:    []Blog{},
+			},
+		)
+		return
+	}
+	c.JSON(http.StatusOK, resp)
 }

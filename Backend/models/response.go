@@ -24,4 +24,3 @@ func NewErrorResponse(message string, data interface{}) APIResponse {
 		Data:    data,
 	}
 }
-

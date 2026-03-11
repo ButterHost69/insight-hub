@@ -1,22 +1,20 @@
-import redis
+import logging
+from redis_server import connect_redis, run_server, close_server
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(message)s")
+log = logging.getLogger(__name__)
 
 REDIS_URL_HOST = "redis"
 REDIS_URL_PORT = 6379
 
+CHANNEL_NAME = "requests"
+
 if __name__=="__main__":
-    # 1. Connect to Redis
-    r = redis.Redis(host=REDIS_URL_HOST, port=REDIS_URL_PORT, decode_responses=True)
-    print(r.ping())  
-    exit
-
-    # # 2. Create a pubsub object and subscribe to the channel
-    # p = r.pubsub()
-    # p.subscribe("news")
-
-    # print("👂 Listening on channel: news")
-
-    # # 3. Block and listen for messages forever
-    # for message in p.listen():
-    #     # Redis sends a "subscribe" confirmation message first — skip it
-    #     if message["type"] == "message":
-    #         print(f"📥 Received: {message['data']}")
+    ifConnect = connect_redis(host=REDIS_URL_HOST, port=REDIS_URL_PORT)
+    if not ifConnect:
+        log.critical("❌ Could Not connect to Redis succesfully !!")
+        exit(1)
+    
+    run_server(channel_name=CHANNEL_NAME)
+    
+    close_server()
