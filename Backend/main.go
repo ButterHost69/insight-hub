@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prachin77/insight-hub/chat/Chat_Backend"
+	"github.com/prachin77/insight-hub/chat/Chat_Handlers"
 	"github.com/prachin77/insight-hub/db"
 	"github.com/prachin77/insight-hub/handlers"
 	"github.com/prachin77/insight-hub/middleware"
@@ -25,6 +27,13 @@ func main() {
 		log.Fatalf("❌ Failed to initialize Firestore: %v", err)
 	}
 	defer db.Close()
+
+	// Start gRPC Messaging Server in background
+	grpcPort := 50051
+	go chat_backend.StartServer(grpcPort)
+
+	// Initialize gRPC Client Handlers
+	chat_handlers.InitClient(fmt.Sprintf("localhost:%d", grpcPort))
 
 	// Create Gin server (simple, explicit setup)
 	gin.SetMode(gin.ReleaseMode)
@@ -47,6 +56,7 @@ func main() {
 	r.POST("/login", handlers.Login)
 	r.POST("/logout", handlers.Logout)
 	r.GET("/user/:username", handlers.GetUser)
+	r.GET("/user/id/:id", handlers.GetUserByIDHandler)
 	r.POST("/blogs", handlers.CreateBlog)
 	r.PUT("/blogs/update", handlers.UpdateBlog)
 	r.DELETE("/blogs/delete", handlers.DeleteBlog)
@@ -59,6 +69,7 @@ func main() {
 	// Follow and Notification routes
 	r.POST("/follow/toggle", handlers.ToggleFollow)
 	r.GET("/follow/check", handlers.CheckFollow)
+	r.GET("/follow/network", handlers.GetUserNetwork)
 	r.GET("/notifications", handlers.GetNotifications)
 	r.POST("/notifications/:id/read", handlers.MarkNotificationRead)
 	r.POST("/notifications/read-all", handlers.MarkAllNotificationsRead)
@@ -66,6 +77,17 @@ func main() {
 
 	// Ask AI
 	r.GET("/askAI", handlers.AskAI)
+	// Chat routes (via gRPC Handlers)
+	chatGroup := r.Group("/chat")
+	{
+		chatGroup.GET("/sidebar", chat_handlers.GetChatSidebar)
+		chatGroup.GET("/messages", chat_handlers.GetMessages)
+		chatGroup.POST("/send", chat_handlers.SendMessage)
+		chatGroup.POST("/read", chat_handlers.ReadMessages)
+		chatGroup.DELETE("/message", chat_handlers.DeleteMessage)
+		chatGroup.PUT("/message", chat_handlers.EditMessage)
+		chatGroup.GET("/stream", chat_handlers.StreamMessagesWS)
+	}
 
 	addr := fmt.Sprintf(":%d", config.ServerPort)
 	log.Printf("🚀 Web server starting on port %d", config.ServerPort)

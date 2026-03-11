@@ -129,3 +129,19 @@ func CheckFollow(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.NewSuccessResponse("follow status checked", gin.H{"is_following": isFollowing}))
 }
+
+func GetUserNetwork(c *gin.Context) {
+	userID := c.Query("user_id")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse("user_id is required", nil))
+		return
+	}
+
+	network, err := db.GetNetwork(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.NewSuccessResponse("network fetched successfully", network))
+}

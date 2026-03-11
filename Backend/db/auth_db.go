@@ -7,6 +7,8 @@ import (
 
 	"github.com/prachin77/insight-hub/models"
 	"golang.org/x/crypto/bcrypt"
+
+	"cloud.google.com/go/firestore"
 )
 
 const usersCollection = "users"
@@ -142,4 +144,15 @@ func GetUserByUsername(ctx context.Context, username string) (*models.User, erro
 	user.ID = doc.Ref.ID
 	user.Password = ""
 	return &user, nil
+}
+// UpdateLastSeen updates the last seen timestamp for a user.
+func UpdateLastSeen(ctx context.Context, userID string) error {
+	if FirestoreClient == nil {
+		return errors.New("firestore client is not initialized")
+	}
+
+	_, err := FirestoreClient.Collection(usersCollection).Doc(userID).Update(ctx, []firestore.Update{
+		{Path: "LastSeen", Value: time.Now()},
+	})
+	return err
 }

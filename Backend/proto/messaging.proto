@@ -8,6 +8,7 @@ service MessagingService {
   rpc SendMessage (SendMessageRequest) returns (SendMessageResponse);
   rpc GetMessages (GetMessagesRequest) returns (GetMessagesResponse);
   rpc StreamMessages (StreamMessagesRequest) returns (stream Message);
+  rpc GetOnlineStatus (GetOnlineStatusRequest) returns (GetOnlineStatusResponse);
 }
 
 message Message {
@@ -41,4 +42,13 @@ message GetMessagesResponse {
 
 message StreamMessagesRequest {
   string user_id = 1;
+}
+
+message GetOnlineStatusRequest {
+  string user_id = 1;
+}
+
+message GetOnlineStatusResponse {
+  bool is_online = 1;
+  string last_seen = 2;
 }

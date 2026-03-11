@@ -17,6 +17,7 @@ const Header = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadMsgCount, setUnreadMsgCount] = useState(0);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -29,7 +30,7 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch unread count
+  // Fetch unread notification count
   useEffect(() => {
     if (isAuthenticated && user?.id) {
       const fetchUnread = async () => {
@@ -44,11 +45,33 @@ const Header = () => {
         }
       };
       fetchUnread();
-      // Poll every 30 seconds
       const interval = setInterval(fetchUnread, 30000);
       return () => clearInterval(interval);
     } else {
       setUnreadCount(0);
+    }
+  }, [isAuthenticated, user?.id]);
+
+  // Fetch unread message count from chat sidebar
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      const fetchUnreadMsgs = async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/chat/sidebar?user_id=${user.id}`, { credentials: "include" });
+          const data = await res.json();
+          if (data.success && data.data) {
+            const total = (data.data as any[]).reduce((sum: number, c: any) => sum + (c.unread || 0), 0);
+            setUnreadMsgCount(total);
+          }
+        } catch (err) {
+          console.error("Failed to fetch unread msg count:", err);
+        }
+      };
+      fetchUnreadMsgs();
+      const interval = setInterval(fetchUnreadMsgs, 15000);
+      return () => clearInterval(interval);
+    } else {
+      setUnreadMsgCount(0);
     }
   }, [isAuthenticated, user?.id]);
 
@@ -143,11 +166,14 @@ const Header = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            className="relative h-9 w-9 text-muted-foreground hover:text-foreground"
             asChild
           >
             <Link to="/messages">
               <MessageSquare className="h-4 w-4" />
+              {unreadMsgCount > 0 && (
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary animate-pulse" />
+              )}
             </Link>
           </Button>
 

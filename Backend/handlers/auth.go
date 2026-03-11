@@ -59,14 +59,25 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Set auth cookie valid for 10 minutes using Document ID
+	// Fetch full user details after successful login
+	user, err := db.GetUserByID(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.NewErrorResponse("failed to fetch user details", nil))
+		return
+	}
+
+	// Set auth cookie
 	cookie := utils.NewAuthCookie(userID)
 	http.SetCookie(c.Writer, &cookie)
 
 	c.JSON(http.StatusOK, models.NewSuccessResponse("login successful", gin.H{
-		"id":       userID,
-		"email":    req.Email,
-		"username": req.Username,
+		"id":         userID,
+		"email":      user.Email,
+		"username":   user.Username,
+		"fullName":   user.FullName,
+		"noOfBlogs":  user.NoOfBlogs,
+		"followers":  user.Followers,
+		"followings": user.Followings,
 	}))
 }
 
@@ -83,6 +94,24 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
+	c.JSON(http.StatusOK, models.NewSuccessResponse("user fetched successfully", user))
+}
+
+func GetUserByIDHandler(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse("id is required", nil))
+		return
+	}
+
+	user, err := db.GetUserByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	// Also set the ID field so frontend can use it
+	user.ID = id
 	c.JSON(http.StatusOK, models.NewSuccessResponse("user fetched successfully", user))
 }
 

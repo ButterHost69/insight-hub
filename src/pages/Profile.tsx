@@ -12,22 +12,37 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [followers, setFollowers] = useState(0);
   const [followings, setFollowings] = useState(0);
+  const [profileUser, setProfileUser] = useState<any>(null);
 
   useEffect(() => {
+    if (!user?.id) return;
     const fetchUserData = async () => {
       try {
-        const [blogsRes, userRes] = await Promise.all([
+        // Fetch user profile by ID (reliable even with stale localStorage)
+        const [blogsRes, userRes, networkRes] = await Promise.all([
           fetch(`${API_BASE_URL}/blogs`),
-          fetch(`${API_BASE_URL}/user/${user?.username}`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/user/id/${user.id}`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/follow/network?user_id=${user.id}`, { credentials: "include" }),
         ]);
+        
         const blogsData = await blogsRes.json();
         if (blogsData.success) {
-          setBlogs((blogsData.data || []).filter((b: any) => b.author_id === user?.id));
+          setBlogs((blogsData.data || []).filter((b: any) => b.author_id === user.id));
         }
+        
         const userData = await userRes.json();
-        if (userData.success) {
-          setFollowers(userData.data?.followers || 0);
-          setFollowings(userData.data?.followings || 0);
+        if (userData.success && userData.data) {
+          setProfileUser(userData.data);
+          setFollowers(userData.data.followers || 0);
+          setFollowings(userData.data.followings || 0);
+        }
+
+        const networkData = await networkRes.json();
+        if (networkData.success && networkData.data) {
+          const followerCount = networkData.data.followers_list?.length;
+          const followingCount = networkData.data.following_list?.length;
+          if (followerCount !== undefined) setFollowers(followerCount);
+          if (followingCount !== undefined) setFollowings(followingCount);
         }
       } catch (err) {
         console.error("Failed to fetch user data:", err);
@@ -35,8 +50,13 @@ const Profile = () => {
         setLoading(false);
       }
     };
-    if (user) fetchUserData();
-  }, [user]);
+    fetchUserData();
+  }, [user?.id]);
+
+  // Use profileUser for display, with AuthContext user as fallback
+  const displayName = profileUser?.fullName || profileUser?.Username || user?.fullName || user?.username || "User";
+  const displayUsername = profileUser?.username || profileUser?.Username || user?.username || "";
+  const displayEmail = profileUser?.email || profileUser?.Email || user?.email || "";
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,17 +72,17 @@ const Profile = () => {
           >
             {/* Avatar */}
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-3xl font-bold text-primary-foreground shadow-lg ring-4 ring-background">
-              {user?.fullName
-                ? user.fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
-                : user?.username?.charAt(0).toUpperCase() || "U"}
+              {displayName
+                ? displayName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
+                : "U"}
             </div>
 
             <div className="flex-1 text-center sm:text-left">
               <h1 className="font-display text-3xl font-bold text-foreground">
-                {user?.fullName || user?.username}
+                {displayName}
               </h1>
-              <p className="mt-1 text-sm text-muted-foreground">@{user?.username}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{user?.email}</p>
+              {displayUsername && <p className="mt-1 text-sm text-muted-foreground">@{displayUsername}</p>}
+              <p className="mt-1 text-sm text-muted-foreground">{displayEmail}</p>
 
               {/* Stats */}
               <div className="mt-6 flex justify-center gap-8 sm:justify-start">

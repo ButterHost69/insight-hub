@@ -12,6 +12,7 @@ type User struct {
 	NoOfBlogs  int       `firestore:"NoOfBlogs" json:"no_of_blogs"`
 	Followers  int       `firestore:"Followers" json:"followers"`
 	Followings int       `firestore:"Followings" json:"followings"`
+	LastSeen   time.Time `firestore:"LastSeen" json:"last_seen"`
 }
 
 type FollowUser struct {

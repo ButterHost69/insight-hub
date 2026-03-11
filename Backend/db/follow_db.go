@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/prachin77/insight-hub/models"
+
 	"cloud.google.com/go/firestore"
 )
 
@@ -95,4 +97,68 @@ func IsFollowing(ctx context.Context, followerID, followingID string) (bool, err
 		}
 	}
 	return false, nil
+}
+// GetFollowing returns the list of users followed by a user.
+func GetFollowing(ctx context.Context, userID string) ([]string, error) {
+	if FirestoreClient == nil {
+		return nil, errors.New("firestore client is not initialized")
+	}
+
+	doc, err := FirestoreClient.Collection("users").Doc(userID).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	data := doc.Data()
+	if list, ok := data["following_list"].([]interface{}); ok {
+		following := make([]string, len(list))
+		for i, v := range list {
+			following[i] = v.(string)
+		}
+		return following, nil
+	}
+	return []string{}, nil
+}
+
+// GetNetwork returns the full profiles of followers and followings for a user.
+func GetNetwork(ctx context.Context, userID string) (*models.Followers, error) {
+	if FirestoreClient == nil {
+		return nil, errors.New("firestore client is not initialized")
+	}
+
+	doc, err := FirestoreClient.Collection("users").Doc(userID).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	data := doc.Data()
+	var network models.Followers
+
+	// Helper to fetch user profiles from IDs
+	fetchProfiles := func(ids []interface{}) []models.FollowUser {
+		var profiles []models.FollowUser
+		for _, rawID := range ids {
+			id := rawID.(string)
+			userDoc, err := FirestoreClient.Collection("users").Doc(id).Get(ctx)
+			if err == nil {
+				var u models.User
+				userDoc.DataTo(&u)
+				profiles = append(profiles, models.FollowUser{
+					FullName: u.FullName,
+					Username: u.Username,
+					Email:    u.Email,
+				})
+			}
+		}
+		return profiles
+	}
+
+	if list, ok := data["followers_list"].([]interface{}); ok {
+		network.FollowersList = fetchProfiles(list)
+	}
+	if list, ok := data["following_list"].([]interface{}); ok {
+		network.FollowingList = fetchProfiles(list)
+	}
+
+	return &network, nil
 }
