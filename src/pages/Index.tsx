@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Filter, Github, ExternalLink, Sparkles } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Filter, Github, ExternalLink, Sparkles, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 import HeroSection from "@/components/home/HeroSection";
@@ -14,6 +14,31 @@ const Index = () => {
   const [activeFilter, setActiveFilter] = useState<FilterType>("latest");
   const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiMessages, setAiMessages] = useState<{ role: "user" | "ai"; text: string }[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [aiMessages]);
+
+  const handleAiSend = () => {
+    if (!aiPrompt.trim()) return;
+    const userMsg = aiPrompt.trim();
+    setAiMessages((prev) => [...prev, { role: "user", text: userMsg }]);
+    setAiPrompt("");
+    setAiLoading(true);
+    // Mock AI response
+    setTimeout(() => {
+      setAiMessages((prev) => [
+        ...prev,
+        { role: "ai", text: `Thanks for asking! AI integration is coming soon. You asked: "${userMsg}"` },
+      ]);
+      setAiLoading(false);
+    }, 1200);
+  };
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -148,8 +173,90 @@ const Index = () => {
           </div>
         </div>
 
-        {/* AI Floating Button */}
-        <button className="group fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-lg transition-all hover:scale-110 hover:shadow-xl hover:shadow-primary/25">
+        {/* AI Floating Button + Prompt Panel */}
+        <AnimatePresence>
+          {aiOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="fixed bottom-20 right-6 z-50 w-80 rounded-2xl border border-border bg-card shadow-2xl shadow-primary/10"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-semibold text-foreground">Ask AI</span>
+                </div>
+                <button
+                  onClick={() => setAiOpen(false)}
+                  className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Messages */}
+              <div className="flex h-64 flex-col gap-3 overflow-y-auto p-4">
+                {aiMessages.length === 0 && (
+                  <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
+                    <Sparkles className="h-8 w-8 text-primary/30" />
+                    <p className="text-xs text-muted-foreground">Ask me anything about blogs, writing tips, or ideas!</p>
+                  </div>
+                )}
+                {aiMessages.map((msg, i) => (
+                  <div
+                    key={i}
+                    className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
+                      msg.role === "user"
+                        ? "ml-auto bg-primary text-primary-foreground"
+                        : "mr-auto bg-secondary text-foreground"
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                ))}
+                {aiLoading && (
+                  <div className="mr-auto flex items-center gap-1 rounded-xl bg-secondary px-3 py-2">
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:0ms]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:300ms]" />
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAiSend();
+                }}
+                className="flex items-center gap-2 border-t border-border px-3 py-3"
+              >
+                <input
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder="Type your question..."
+                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={!aiPrompt.trim() || aiLoading}
+                  className="rounded-lg bg-primary p-2 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <button
+          onClick={() => setAiOpen((prev) => !prev)}
+          className="group fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-lg transition-all hover:scale-110 hover:shadow-xl hover:shadow-primary/25"
+        >
           <Sparkles className="h-5 w-5 transition-transform group-hover:rotate-12" />
         </button>
       </footer>
