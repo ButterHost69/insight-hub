@@ -14,6 +14,31 @@ const Index = () => {
   const [activeFilter, setActiveFilter] = useState<FilterType>("latest");
   const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiMessages, setAiMessages] = useState<{ role: "user" | "ai"; text: string }[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [aiMessages]);
+
+  const handleAiSend = () => {
+    if (!aiPrompt.trim()) return;
+    const userMsg = aiPrompt.trim();
+    setAiMessages((prev) => [...prev, { role: "user", text: userMsg }]);
+    setAiPrompt("");
+    setAiLoading(true);
+    // Mock AI response
+    setTimeout(() => {
+      setAiMessages((prev) => [
+        ...prev,
+        { role: "ai", text: `Thanks for asking! AI integration is coming soon. You asked: "${userMsg}"` },
+      ]);
+      setAiLoading(false);
+    }, 1200);
+  };
 
   useEffect(() => {
     const fetchBlogs = async () => {
