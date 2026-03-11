@@ -16,28 +16,70 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [aiOpen, setAiOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
-  const [aiMessages, setAiMessages] = useState<{ role: "user" | "ai"; text: string }[]>([]);
+  const [aiMessages, setAiMessages] = useState<{ role: "user" | "ai"; text: string; blogs?: { title: string; slug: string }[] }[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiBuffering, setAiBuffering] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [aiMessages]);
 
-  const handleAiSend = () => {
+  const handleAiSend = async () => {
     if (!aiPrompt.trim()) return;
     const userMsg = aiPrompt.trim();
     setAiMessages((prev) => [...prev, { role: "user", text: userMsg }]);
     setAiPrompt("");
     setAiLoading(true);
-    // Mock AI response
-    setTimeout(() => {
+    setAiBuffering(false);
+
+    const timer = setTimeout(() => {
+      setAiBuffering(true);
+    }, 3000);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/askAI?prompt=${encodeURIComponent(userMsg)}`);
+      clearTimeout(timer);
+
+      if (res.status === 200) {
+        const data = await res.json();
+        const responseText = data.response || data.message || data.data?.response || "No response received";
+        const blogs = data.blogs || data.data?.blogs || [];
+        setAiMessages((prev) => [
+          ...prev,
+          { role: "ai", text: responseText, blogs: blogs.length > 0 ? blogs : undefined },
+        ]);
+      } else if (res.status === 500) {
+        setAiMessages((prev) => [
+          ...prev,
+          { role: "ai", text: "Server error. Please try again later." },
+        ]);
+      } else if (res.status === 404) {
+        setAiMessages((prev) => [
+          ...prev,
+          { role: "ai", text: "Endpoint not found." },
+        ]);
+      } else if (res.status === 429) {
+        setAiMessages((prev) => [
+          ...prev,
+          { role: "ai", text: "Too many requests. Please wait a moment." },
+        ]);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        setAiMessages((prev) => [
+          ...prev,
+          { role: "ai", text: errorData.message || `Request failed with status ${res.status}` },
+        ]);
+      }
+    } catch (err) {
+      clearTimeout(timer);
       setAiMessages((prev) => [
         ...prev,
-        { role: "ai", text: `Thanks for asking! AI integration is coming soon. You asked: "${userMsg}"` },
+        { role: "ai", text: "Server unavailable. Please check your connection." },
       ]);
+    } finally {
       setAiLoading(false);
-    }, 1200);
+    }
   };
 
   useEffect(() => {
@@ -181,7 +223,7 @@ const Index = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.9 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="fixed bottom-20 right-6 z-50 w-80 rounded-2xl border border-border bg-card shadow-2xl shadow-primary/10"
+              className="fixed bottom-6 right-6 z-[100] flex h-[85vh] w-[40%] flex-col rounded-2xl border border-border bg-card shadow-2xl shadow-primary/10"
             >
               {/* Header */}
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -198,9 +240,9 @@ const Index = () => {
               </div>
 
               {/* Messages */}
-              <div className="flex h-64 flex-col gap-3 overflow-y-auto p-4">
+              <div className="flex min-h-[300px] flex-1 flex-col gap-3 overflow-y-auto p-4">
                 {aiMessages.length === 0 && (
-                  <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
+                  <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
                     <Sparkles className="h-8 w-8 text-primary/30" />
                     <p className="text-xs text-muted-foreground">Ask me anything about blogs, writing tips, or ideas!</p>
                   </div>
@@ -214,14 +256,35 @@ const Index = () => {
                         : "mr-auto bg-secondary text-foreground"
                     }`}
                   >
-                    {msg.text}
+                    <p className="whitespace-pre-wrap">{msg.text}</p>
+                    {msg.blogs && msg.blogs.length > 0 && (
+                      <div className="mt-2 flex flex-col gap-1 border-t border-border pt-2">
+                        <span className="text-xs font-medium text-muted-foreground">Related Blogs:</span>
+                        {msg.blogs.map((blog, j) => (
+                          <a
+                            key={j}
+                            href={`/blog/${blog.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline"
+                          >
+                            {blog.title}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
                 {aiLoading && (
                   <div className="mr-auto flex items-center gap-1 rounded-xl bg-secondary px-3 py-2">
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:0ms]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]" />
-                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:300ms]" />
+                    {aiBuffering && (
+                      <span className="text-xs text-muted-foreground">Taking more time</span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:0ms]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:300ms]" />
+                    </span>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -233,13 +296,21 @@ const Index = () => {
                   e.preventDefault();
                   handleAiSend();
                 }}
-                className="flex items-center gap-2 border-t border-border px-3 py-3"
+                className="flex min-h-[80px] items-end gap-2 border-t border-border px-3 py-3"
               >
-                <input
+                <textarea
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
-                  placeholder="Type your question..."
-                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.ctrlKey && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAiSend();
+                    }
+                  }}
+                  placeholder="Type your question... (Enter to send, Ctrl+Enter for new line)"
+                  rows={Math.min(10, Math.max(2, aiPrompt.split("\n").length))}
+                  className="flex-1 resize-none overflow-y-auto bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  style={{ maxHeight: "7.5rem" }}
                 />
                 <button
                   type="submit"
@@ -253,12 +324,14 @@ const Index = () => {
           )}
         </AnimatePresence>
 
-        <button
-          onClick={() => setAiOpen((prev) => !prev)}
-          className="group fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-lg transition-all hover:scale-110 hover:shadow-xl hover:shadow-primary/25"
-        >
-          <Sparkles className="h-5 w-5 transition-transform group-hover:rotate-12" />
-        </button>
+        {!aiOpen && (
+          <button
+            onClick={() => setAiOpen(true)}
+            className="group fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-lg transition-all hover:scale-110 hover:shadow-xl hover:shadow-primary/25"
+          >
+            <Sparkles className="h-5 w-5 transition-transform group-hover:rotate-12" />
+          </button>
+        )}
       </footer>
     </div>
   );
