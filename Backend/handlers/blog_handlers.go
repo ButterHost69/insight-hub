@@ -30,6 +30,18 @@ func CreateBlog(c *gin.Context) {
 		return
 	}
 
+	isValidCategory := false
+	for _, cat := range models.ValidCategories {
+		if req.Category == cat {
+			isValidCategory = true
+			break
+		}
+	}
+	if !isValidCategory {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse("invalid category", nil))
+		return
+	}
+
 	// Unique Title Check
 	exists, err := db.TitleExists(c.Request.Context(), title)
 	if err != nil {
@@ -143,7 +155,7 @@ func ToggleLike(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, models.NewSuccessResponse("like status toggled", gin.H{"liked": isLiked}))
-}
+}			
 
 func AddComment(c *gin.Context) {
 	var req models.Comment
@@ -185,6 +197,18 @@ func UpdateBlog(c *gin.Context) {
 	var req models.Blog
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, models.NewErrorResponse(err.Error(), nil))
+		return
+	}
+
+	isValidCategory := false
+	for _, cat := range models.ValidCategories {
+		if req.Category == cat {
+			isValidCategory = true
+			break
+		}
+	}
+	if !isValidCategory {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse("invalid category", nil))
 		return
 	}
 

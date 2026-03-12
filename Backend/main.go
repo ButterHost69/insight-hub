@@ -54,6 +54,7 @@ func main() {
 	// Auth routes
 	r.POST("/register", handlers.Register)
 	r.POST("/login", handlers.Login)
+	r.POST("/auth/google", handlers.GoogleAuth)
 	r.POST("/logout", handlers.Logout)
 	r.GET("/user/:username", handlers.GetUser)
 	r.GET("/user/id/:id", handlers.GetUserByIDHandler)

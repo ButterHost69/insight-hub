@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/lib/api";
+import { GoogleLogin } from "@react-oauth/google";
 
 const SignIn = () => {
   const { login } = useAuth();
@@ -61,6 +62,43 @@ const SignIn = () => {
     toast.info(`${provider} login requires backend. Enable Cloud to activate.`);
   };
 
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/google`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          credential: credentialResponse.credential,
+          type: "login",
+        }),
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data?.message || "Google sign in failed");
+      }
+
+      login({
+        id: data.data?.user?.id,
+        email: data.data?.user?.email,
+        username: data.data?.user?.username,
+        fullName: data.data?.user?.fullName
+      }, true); // Auto-remember for social login
+      
+      toast.success("Google Sign-In successful!");
+      navigate("/");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to sign in with Google.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen">
       {/* Left - Branding Panel */}
@@ -106,23 +144,20 @@ const SignIn = () => {
           <p className="mt-2 text-muted-foreground">Sign in to your account to continue</p>
 
           {/* Social Login */}
-          <div className="mt-8 grid grid-cols-2 gap-3">
+          <div className="mt-8 flex flex-col items-center justify-center gap-3">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => toast.error("Google Login Failed")}
+              useOneTap
+              width="350"
+              theme="outline"
+              size="large"
+              shape="rectangular"
+              text="signin_with"
+            />
             <Button
               variant="outline"
-              className="h-11 gap-2"
-              onClick={() => handleSocialLogin("Google")}
-            >
-              <svg className="h-5 w-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-              </svg>
-              Google
-            </Button>
-            <Button
-              variant="outline"
-              className="h-11 gap-2"
+              className="h-11 w-full gap-2"
               onClick={() => handleSocialLogin("GitHub")}
             >
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
