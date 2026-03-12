@@ -14,6 +14,7 @@ services:
       - 6379:6379
     volumes:
       - redis-data:/data
+    profiles: ["model_local", "model_api"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -27,6 +28,7 @@ services:
       - "6334:6334"
     volumes:
       - qdrant-data:/qdrant/storage
+    profiles: ["model_local", "model_api"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:6333/collections"]
       interval: 10s
@@ -42,6 +44,7 @@ services:
       - VLLM_WORKER_MULTIPROC_MODULE=vllm.model_executor.workers.quantized_fp8_model
     volumes:
       - vllm-model-cache:/root/.cache/huggingface
+    profiles: ["model_local"]
     deploy:
       resources:
         reservations:
@@ -50,10 +53,11 @@ services:
               count: 1
               capabilities: [gpu]
     command: >
-      --model meta-llama/Llama-3.2-3B-Instruct
-      --quantization awq
-      --gpu-memory-utilization 0.85
-      --max-model-len 4096
+      --model Qwen/Qwen2.5-3B-Instruct 
+      --quantization awq 
+      --gpu-memory-utilization 0.85 
+      --max-model-len 4096 
+      --dtype float16
       --host 0.0.0.0
       --port 8000
     healthcheck:
@@ -62,15 +66,34 @@ services:
       timeout: 10s
       retries: 5
 
-  ai-ask:
+  ai-ask-local:
     build:
       context:  ./Backend/ai-ask
+    profiles: ["model_local"]
+    environment:
+      - AI_ASKMODE=local
+    volumes:
+      - ./Backend/.env:/app/.env
     depends_on: 
       redis:
         condition: service_healthy
       qdrant:
         condition: service_healthy
       vllm:
+        condition: service_healthy
+
+  ai-ask-api:
+    build:
+      context:  ./Backend/ai-ask
+    profiles: ["model_api"]
+    environment:
+      - AI_ASKMODE=api
+    volumes:
+      - ./Backend/.env:/app/.env
+    depends_on: 
+      redis:
+        condition: service_healthy
+      qdrant:
         condition: service_healthy
 
   server:
@@ -81,12 +104,11 @@ services:
       - 6969:6969
     volumes:
       - ./Backend/.env:/app/.env
+    profiles: ["model_local", "model_api"]
     depends_on:
       redis:
         condition: service_healthy
       qdrant:
-        condition: service_healthy
-      vllm:
         condition: service_healthy
   
 volumes:
