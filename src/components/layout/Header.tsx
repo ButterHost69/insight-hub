@@ -6,18 +6,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUnreadMessages } from "@/contexts/UnreadMessagesContext";
 import AuthGuardButton from "@/components/AuthGuardButton";
 import { API_BASE_URL } from "@/lib/api";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
+  const { totalUnread: unreadMsgCount } = useUnreadMessages();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [unreadMsgCount, setUnreadMsgCount] = useState(0);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -52,28 +53,6 @@ const Header = () => {
     }
   }, [isAuthenticated, user?.id]);
 
-  // Fetch unread message count from chat sidebar
-  useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      const fetchUnreadMsgs = async () => {
-        try {
-          const res = await fetch(`${API_BASE_URL}/chat/sidebar?user_id=${user.id}`, { credentials: "include" });
-          const data = await res.json();
-          if (data.success && data.data) {
-            const total = (data.data as any[]).reduce((sum: number, c: any) => sum + (c.unread || 0), 0);
-            setUnreadMsgCount(total);
-          }
-        } catch (err) {
-          console.error("Failed to fetch unread msg count:", err);
-        }
-      };
-      fetchUnreadMsgs();
-      const interval = setInterval(fetchUnreadMsgs, 15000);
-      return () => clearInterval(interval);
-    } else {
-      setUnreadMsgCount(0);
-    }
-  }, [isAuthenticated, user?.id]);
 
   const getInitials = () => {
     if (user?.fullName) {

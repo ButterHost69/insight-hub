@@ -52,6 +52,7 @@ func (s *server) SendMessage(ctx context.Context, req *pb.SendMessageRequest) (*
 	}
 	convo.LastMessage = req.Content
 	convo.LastMessageTime = timestamp
+	convo.LastSenderID = req.SenderId
 	// 3. Broadcast to receiver if online
 	pbMsg := &pb.Message{
 		Id:         msgID,

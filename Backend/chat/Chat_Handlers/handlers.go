@@ -82,7 +82,10 @@ func GetChatSidebar(c *gin.Context) {
 	}
 
 	// 2. Fetch conversations to get unread counts/last messages
-	convos, _ := db.GetUserConversations(c.Request.Context(), userID)
+	convos, err := db.GetUserConversations(c.Request.Context(), userID)
+	if err != nil {
+		log.Printf("⚠️ Failed to fetch conversations for user %s: %v", userID, err)
+	}
 	convoMap := make(map[string]models.Conversation)
 	for _, conv := range convos {
 		// Find the other participant

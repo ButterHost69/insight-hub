@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUnreadMessages } from "@/contexts/UnreadMessagesContext";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/lib/api";
 
@@ -29,6 +30,7 @@ interface Message {
 
 const Messages = () => {
   const { user } = useAuth();
+  const { clearConversationUnread, refreshUnreads } = useUnreadMessages();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConvo, setSelectedConvo] = useState<Conversation | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -81,6 +83,20 @@ const Messages = () => {
           setConversations(prev => prev.map(c => 
             c.id === selectedConvo.id ? { ...c, unread: 0 } : c
           ));
+          // Update shared context so header dot disappears immediately
+          clearConversationUnread(selectedConvo.id);
+          // Explicitly mark as read on backend & refresh context
+          try {
+            await fetch(`${API_BASE_URL}/chat/read`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ user_id: user.id, other_id: selectedConvo.id })
+            });
+          } catch (e) {
+            console.error("Failed to mark as read:", e);
+          }
+          refreshUnreads();
         }
       } catch (err) {
         console.error("Error fetching messages:", err);
@@ -157,6 +173,9 @@ const Messages = () => {
                 credentials: "include",
                 body: JSON.stringify({ user_id: user.id, other_id: c.id })
               }).catch(err => console.error("Failed to auto-read:", err));
+            } else {
+              // Not viewing this convo — refresh shared unread context for header dot
+              refreshUnreads();
             }
 
             return {
