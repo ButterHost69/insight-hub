@@ -4,10 +4,12 @@ from redis_server import connect_redis, run_server, close_server
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(message)s")
 log = logging.getLogger(__name__)
 
+# TODO: [ ] Make them read from .env
 REDIS_URL_HOST = "redis"
 REDIS_URL_PORT = 6379
-
 CHANNEL_NAME = "requests"
+IFLOCALLY = True
+
 
 if __name__=="__main__":
     ifConnect = connect_redis(host=REDIS_URL_HOST, port=REDIS_URL_PORT)

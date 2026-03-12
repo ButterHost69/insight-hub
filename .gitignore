@@ -25,3 +25,4 @@ dist-ssr
 
 # Backend
 Backend/db/Firebase_Credentials.json
+Backend/.env
