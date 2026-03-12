@@ -83,8 +83,20 @@ const Messages = () => {
           setConversations(prev => prev.map(c => 
             c.id === selectedConvo.id ? { ...c, unread: 0 } : c
           ));
-          // Update shared context so header dot disappears
+          // Update shared context so header dot disappears immediately
           clearConversationUnread(selectedConvo.id);
+          // Explicitly mark as read on backend & refresh context
+          try {
+            await fetch(`${API_BASE_URL}/chat/read`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ user_id: user.id, other_id: selectedConvo.id })
+            });
+          } catch (e) {
+            console.error("Failed to mark as read:", e);
+          }
+          refreshUnreads();
         }
       } catch (err) {
         console.error("Error fetching messages:", err);
