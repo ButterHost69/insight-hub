@@ -11,6 +11,26 @@ import { toast } from "sonner";
 import Header from "@/components/layout/Header";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const CATEGORIES = [
+  "Technology",
+  "Artificial Intelligence",
+  "Web Development",
+  "Design & UX",
+  "Startup & Business",
+  "Productivity",
+  "Data Science",
+  "Cybersecurity",
+  "Health & Wellness",
+  "Finance & Crypto",
+];
 
 const CreateBlog = () => {
     const navigate = useNavigate();
@@ -155,15 +175,19 @@ const CreateBlog = () => {
 
                         {/* Category */}
                         <div className="space-y-2">
-                            <Label htmlFor="category">Category</Label>
-                            <Input
-                                id="category"
-                                placeholder="e.g. Technology, Lifestyle, Business..."
-                                className="h-11"
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                                required
-                            />
+                            <Label>Category</Label>
+                            <Select value={category} onValueChange={setCategory}>
+                                <SelectTrigger className="h-11">
+                                    <SelectValue placeholder="Select a category..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {CATEGORIES.map((cat) => (
+                                        <SelectItem key={cat} value={cat}>
+                                            {cat}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Cover Image URL */}
