@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUnreadMessages } from "@/contexts/UnreadMessagesContext";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/lib/api";
 
