@@ -83,7 +83,7 @@ COPY --from=build /bin/server /bin/
 # Expose the port that the application listens on.
 EXPOSE 6969
 
-COPY Backend/.env /app/.env
+COPY .env /app/.env
 COPY Backend/db /app/db
 WORKDIR /app
 # What the container should run when it is started.

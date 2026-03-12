@@ -30,7 +30,7 @@ services:
       - qdrant-data:/qdrant/storage
     profiles: ["model_local", "model_api"]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/collections"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6333/healthz"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -61,10 +61,7 @@ services:
       --host 0.0.0.0
       --port 8000
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/models"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+      disable: true
 
   ai-ask-local:
     build:
@@ -73,12 +70,12 @@ services:
     environment:
       - AI_ASKMODE=local
     volumes:
-      - ./Backend/.env:/app/.env
+      - .env:/app/.env
     depends_on: 
       redis:
         condition: service_healthy
       qdrant:
-        condition: service_healthy
+        condition: service_started 
       vllm:
         condition: service_healthy
 
@@ -89,12 +86,12 @@ services:
     environment:
       - AI_ASKMODE=api
     volumes:
-      - ./Backend/.env:/app/.env
+      - .env:/app/.env
     depends_on: 
       redis:
         condition: service_healthy
       qdrant:
-        condition: service_healthy
+        condition: service_started
 
   server:
     build:
@@ -103,13 +100,13 @@ services:
     ports:
       - 6969:6969
     volumes:
-      - ./Backend/.env:/app/.env
+      - .env:/app/.env
     profiles: ["model_local", "model_api"]
     depends_on:
       redis:
         condition: service_healthy
       qdrant:
-        condition: service_healthy
+        condition: service_started
   
 volumes:
   redis-data:
