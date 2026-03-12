@@ -13,12 +13,12 @@ import { API_BASE_URL } from "@/lib/api";
 const Header = () => {
   const { theme, setTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
+  const { totalUnread: unreadMsgCount } = useUnreadMessages();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [unreadMsgCount, setUnreadMsgCount] = useState(0);
 
   // Close dropdown when clicking outside
   useEffect(() => {
