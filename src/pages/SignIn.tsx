@@ -58,45 +58,15 @@ const SignIn = () => {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    toast.info(`${provider} login requires backend. Enable Cloud to activate.`);
-  };
-
-  const handleGoogleSuccess = async (credentialResponse: any) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/google`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          credential: credentialResponse.credential,
-          type: "login",
-        }),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data?.message || "Google sign in failed");
-      }
-
-      login({
-        id: data.data?.user?.id,
-        email: data.data?.user?.email,
-        username: data.data?.user?.username,
-        fullName: data.data?.user?.fullName
-      }, true); // Auto-remember for social login
-      
-      toast.success("Google Sign-In successful!");
-      navigate("/");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to sign in with Google.");
-    } finally {
-      setLoading(false);
-    }
+  const handleGoogleSuccess = (data: any) => {
+    login({
+      id: data.data?.user?.id,
+      email: data.data?.user?.email,
+      username: data.data?.user?.username,
+      fullName: data.data?.user?.fullName,
+    }, true);
+    toast.success("Google Sign-In successful!");
+    navigate("/");
   };
 
   return (
