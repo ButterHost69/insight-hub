@@ -21,15 +21,17 @@ import {
 
 const CATEGORIES = [
   "Technology",
-  "Artificial Intelligence",
-  "Web Development",
-  "Design & UX",
-  "Startup & Business",
-  "Productivity",
-  "Data Science",
-  "Cybersecurity",
+  "Travelling",
+  "Food",
+  "Education",
+  "Sports",
+  "Entertainment",
+  "Fashion",
+  "Lifestyle",
+  "Art & Photography",
   "Health & Wellness",
   "Finance & Crypto",
+  "Other"
 ];
 
 const CreateBlog = () => {

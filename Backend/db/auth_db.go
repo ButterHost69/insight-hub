@@ -28,12 +28,15 @@ func CreateUser(ctx context.Context, user *models.User) (string, error) {
 		return "", errors.New("user with this email already exists")
 	}
 
-	// Hash the password before storing
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
+	// Hash the password before storing (only if provided, e.g. not for Google users)
+	if user.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return "", err
+		}
+		user.Password = string(hashedPassword)
 	}
-	user.Password = string(hashedPassword)
+
 	user.CreatedAt = time.Now()
 
 	docRef, _, err := FirestoreClient.Collection(usersCollection).Add(ctx, user)
@@ -155,4 +158,23 @@ func UpdateLastSeen(ctx context.Context, userID string) error {
 		{Path: "LastSeen", Value: time.Now()},
 	})
 	return err
+}
+// GetUserByEmail retrieves a user by their email.
+func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	if FirestoreClient == nil {
+		return nil, errors.New("firestore client is not initialized")
+	}
+
+	doc, err := FirestoreClient.Collection(usersCollection).Where("Email", "==", email).Limit(1).Documents(ctx).Next()
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	var user models.User
+	if err := doc.DataTo(&user); err != nil {
+		return nil, err
+	}
+	user.ID = doc.Ref.ID
+	user.Password = ""
+	return &user, nil
 }

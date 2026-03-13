@@ -7,8 +7,26 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 )
+
+// GenerateJWT creates a new JSON Web Token for an authenticated user.
+func GenerateJWT(userID, email string) (string, error) {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return "", fmt.Errorf("JWT_SECRET not set in environment")
+	}
+
+	claims := jwt.MapClaims{
+		"user_id": userID,
+		"email":   email,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(), // 24 hour expiry
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secret))
+}
 
 type AppConfig struct {
 	ServerPort int

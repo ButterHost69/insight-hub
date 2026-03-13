@@ -21,3 +21,18 @@ type Blog struct {
 	Featured       bool      `firestore:"featured" json:"featured"`
 	Trending       bool      `firestore:"trending" json:"trending"`
 }
+
+var ValidCategories = []string{
+	"Technology",
+	"Travelling",
+	"Food",
+	"Education",
+	"Sports",
+	"Entertainment",
+	"Fashion",
+	"Lifestyle",
+	"Art & Photography",
+	"Health & Wellness",
+	"Finance & Crypto",
+	"Other",
+}
