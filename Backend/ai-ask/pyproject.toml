@@ -5,5 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "dotenv>=0.9.9",
+    "qdrant-client>=1.17.0",
     "redis>=7.3.0",
 ]

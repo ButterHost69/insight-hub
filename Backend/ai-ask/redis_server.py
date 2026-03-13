@@ -57,7 +57,7 @@ def send_response(req_id: str, result: str = "", error: str = ""):
 
 
 def run_server(channel_name:str):            
-    log.info("👂 Python worker listening on 'requests'...")
+    log.info(f"👂 Python worker listening on '{channel_name}'...")
 
     PRINT_COUNT = 30
     no_request_count = 0
@@ -68,7 +68,7 @@ def run_server(channel_name:str):
             no_request_count += 1
             if no_request_count == PRINT_COUNT:
                 log.info(f"🏓 ping — no requests for {PRINT_COUNT}s ...")
-                no_request_count == 0
+                no_request_count = 0
                 
             time.sleep(1)
             continue

@@ -1,22 +1,25 @@
 import logging
 from redis_server import connect_redis, run_server, close_server
+from qdrant_db import connect_qdrant
+import utils
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(message)s")
 log = logging.getLogger(__name__)
 
-# TODO: [ ] Make them read from .env
-REDIS_URL_HOST = "redis"
-REDIS_URL_PORT = 6379
-CHANNEL_NAME = "requests"
-IFLOCALLY = True
-
-
 if __name__=="__main__":
-    ifConnect = connect_redis(host=REDIS_URL_HOST, port=REDIS_URL_PORT)
+    config = utils.load_config()
+    
+    rediurl, redisport_str = config.REDIS_URL.split(":")
+    ifConnect = connect_redis(host=rediurl, port=int(redisport_str))
     if not ifConnect:
-        log.critical("❌ Could Not connect to Redis succesfully !!")
+        log.critical("❌ Could Not connect to Redis !!")
+        exit(1)
+        
+    ifConnect = connect_qdrant(qdrant_url=config.QDRANT_URL, qdrant_collection=config.QDRANT_COLLECTION)
+    if not ifConnect:
+        log.critical("❌ Could Not connect to Qdrant !!")
         exit(1)
     
-    run_server(channel_name=CHANNEL_NAME)
+    run_server(channel_name=config.REDIS_CHANNEL)
     
     close_server()

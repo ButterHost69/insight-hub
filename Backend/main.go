@@ -22,10 +22,12 @@ func main() {
 		log.Fatalf("❌ Failed to load configuration: %v", err)
 	}
 
-	// Initialize Firestore and Connect to Redis database,
-	if err := db.Init(); err != nil {
-		log.Fatalf("❌ Failed to initialize Firestore: %v", err)
+	// Initialize Firestore and Connect to Redis , Qdrant database
+	if err := db.Init(config.RedisUrl, config.QdrantURL, config.QdrantCollection); err != nil {
+		log.Fatalf("❌ Failed to initialize Databases: %v", err)
 	}
+
+	log.Println("✅ Connected to all databases !!")
 	defer db.Close()
 
 	// Start gRPC Messaging Server in background

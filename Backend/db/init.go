@@ -4,22 +4,27 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 
 	"cloud.google.com/go/firestore"
+	"github.com/qdrant/go-client/qdrant"
 	"github.com/redis/go-redis/v9"
+
 	"google.golang.org/api/option"
 )
 
 var (
 	FirestoreClient *firestore.Client
-	RedisClient *redis.Client
+	RedisClient     *redis.Client
+	QdrantClient    *qdrant.Client
 )
 
 const (
 	UsersCollection = "users"
 )
 
-func Init() error {
+func Init(redisUrl, qdrantUrl, qdrantCollection string) error {
 	credentialsPath := "db/Firebase_Credentials.json"
 
 	// Initialize Firestore
@@ -30,13 +35,16 @@ func Init() error {
 	log.Println("✅ Firestore initialized successfully")
 
 	// Connect to redis
-	// [ ] Make it so it loads from .env file
-	redisURL := "redis:6379"
-	if err := InitRedisDB(redisURL); err != nil {
+	if err := InitRedisDB(redisUrl); err != nil {
 		return fmt.Errorf("❌ Connecting to RedisDB failed: %v", err)
 	}
-	
+
 	log.Println("✅ Connected to RedisDB successfully")
+
+	if err := InitQdrantDB(qdrantUrl, qdrantCollection); err != nil {
+		return fmt.Errorf("❌ Connecting to QdrantDB failed: %v", err)
+	}
+	log.Println("✅ Connected to QdrantDB successfully")
 
 	return nil
 }
@@ -65,6 +73,65 @@ func InitFirestore(credentialsPath string) error {
 	return nil
 }
 
+func InitQdrantDB(dbLink, collectionName string) error {
+	ctx := context.Background()
+
+
+	rawLink := strings.TrimPrefix(dbLink, "https://")
+	rawLink = strings.TrimPrefix(rawLink, "http://")
+
+	dblink_split := strings.Split(rawLink, ":")
+	if len(dblink_split) != 2 {
+		return fmt.Errorf("Qdrant: dblink if not in proper format, need: ip:port have %s", dbLink)
+	}
+	
+	db_url := dblink_split[0]
+	db_port, err := strconv.Atoi(dblink_split[1])
+	if err != nil {
+		return fmt.Errorf("Qdrant: port not int %s, err:%w", dblink_split[1], err)
+	}
+
+	client, err := qdrant.NewClient(&qdrant.Config{
+		Host: db_url,
+		Port: db_port,
+	})
+
+	log.Println("✅ Qdrant: Was able to connect to QDrant !!")
+	if err != nil {
+		client.Close()
+		return fmt.Errorf("Qdrant: failed to create Qdrant client: %w", err)
+	}
+
+	exists, err := client.CollectionExists(ctx, collectionName)
+	if err != nil {
+		client.Close()
+		return fmt.Errorf("Qdrant: failed to check collection: %w", err)
+	}
+
+	if !exists {
+		log.Printf("Qdrant collection %s does not exist\n", collectionName)
+		log.Printf("Creating Qdrant Collection %s\n", collectionName)
+
+		err = client.CreateCollection(context.Background(), &qdrant.CreateCollection{
+			CollectionName: collectionName,
+			VectorsConfig: qdrant.NewVectorsConfig(&qdrant.VectorParams{
+				Size:     1536,
+				Distance: qdrant.Distance_Cosine,
+			}),
+		})
+
+		if err != nil {
+			client.Close()
+			return fmt.Errorf("Qdrant: failed to create collection: %w", err)
+		}
+
+		log.Println("Qdrant: Collection created!")
+	}
+
+	QdrantClient = client
+	return nil
+}
+
 func Close() {
 	if FirestoreClient != nil {
 		err := FirestoreClient.Close()
@@ -81,6 +148,15 @@ func Close() {
 			log.Printf("⚠️ Error closing connection to RedisDB: %v", err)
 		} else {
 			log.Println("✅ RedisDB connection closed")
+		}
+	}
+
+	if QdrantClient != nil {
+		err := QdrantClient.Close()
+		if err != nil {
+			log.Printf("⚠️ Error closing connection to QdrantDB: %v", err)
+		} else {
+			log.Println("✅ QdrantDB connection closed")
 		}
 	}
 }
