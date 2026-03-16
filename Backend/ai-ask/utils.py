@@ -14,6 +14,7 @@ class Config:
     VLLM_URL: str
     HF_TOKEN: str
     GROQ_API: str
+    EMBEDDING_MODEL_NAME: str
 
 def load_config() -> Config:
     load_dotenv()  # reads .env from current directory
@@ -25,5 +26,6 @@ def load_config() -> Config:
     vllm_url = os.getenv("VLLM_URL", None)
     hf_token = os.getenv("HF_TOKEN", None)
     groq_api = os.getenv("GROQ_API", None)
+    emb_model_name = os.getenv("EMBEDDING_MODEL_NAME", None)
     
-    return Config(redis_url, redis_channel, qdrant_url, qdrant_collection, ai_ask_mode, vllm_url, hf_token, groq_api)
+    return Config(redis_url, redis_channel, qdrant_url, qdrant_collection, ai_ask_mode, vllm_url, hf_token, groq_api, emb_model_name)

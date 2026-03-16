@@ -1,13 +1,27 @@
+import os
 import redis
 import time
 import json
 import logging
+from fastembed import TextEmbedding
+from qdrant_db import store_embedding
 
-log = logging.getLogger(__name__)  
+log = logging.getLogger(__name__)
 RedisClient = None
 retries = 3
+EMBEDDING_PRIORITY = 10
 
-def connect_redis(host:str, port:int) -> bool:
+embedding_model = None
+
+
+def init_embedding_model(model_name):
+    global embedding_model
+    cache_dir = os.getenv("FASTEMBED_CACHE_DIR", "/root/.cache/fastembed")
+    embedding_model = TextEmbedding(model_name=model_name, cache_dir=cache_dir)
+    log.info(f"✅ Loaded embedding model: {model_name}")
+
+
+def connect_redis(host: str, port: int) -> bool:
     global RedisClient
     for attempt in range(retries):
         try:
@@ -17,7 +31,7 @@ def connect_redis(host:str, port:int) -> bool:
             log.info("✅ Connected to Redis")
             return True
         except redis.exceptions.ConnectionError:
-            log.warning(f"⚠️ Attempt {attempt+1}/{retries} failed, retrying in 2s...")
+            log.warning(f"⚠️ Attempt {attempt + 1}/{retries} failed, retrying in 2s...")
             time.sleep(2)
     return False
 
@@ -27,19 +41,30 @@ def close_server():
         RedisClient.close()
         log.info("Closing Connection to Redis")
 
+
 def process(req: dict) -> str:
     payload_type = req["payload_type"]
 
     if payload_type == "RAG":
-        # RAG SHIT HERE
-        return json.dumps({
-            "response":req['payload'],
-            "blogs":[]
-        })
+        return json.dumps({"response": req["payload"], "blogs": []})
 
     elif payload_type == "Embedding":
-        # EMBED SHIT HERE
-        return f"Embedding result for: {req['payload']}"
+        doc_id = req.get("id", "")
+        text = req.get("payload", "")
+
+        vectors = embedding_model.embed(text)
+        vector_list = (
+            vectors[0].tolist() if hasattr(vectors[0], "tolist") else list(vectors[0])
+        )
+
+        success = store_embedding(doc_id, text, vector_list)
+
+        if success:
+            return json.dumps(
+                {"status": "success", "doc_id": doc_id, "vector_dim": len(vector_list)}
+            )
+        else:
+            raise Exception("Failed to store embedding in Qdrant")
 
     else:
         raise ValueError(f"Unknown payload type: {payload_type}")
@@ -47,17 +72,18 @@ def process(req: dict) -> str:
 
 def send_response(req_id: str, result: str = "", error: str = ""):
     resp = {
-        "id":     req_id,
+        "id": req_id,
         "result": result,
-        "error":  error,
+        "error": error,
     }
     RedisClient.lpush(req_id, json.dumps(resp))
-    RedisClient.expire(req_id, 60)   # cleanup key after 60s
+    RedisClient.expire(req_id, 60)  # cleanup key after 60s
 
 
-
-def run_server(channel_name:str):            
-    log.info(f"👂 Python worker listening on '{channel_name}'...")
+def run_server(channel_name: str):
+    log.info(
+        f"👂 Python worker listening on '{channel_name}' for priority {EMBEDDING_PRIORITY} (Embedding)..."
+    )
 
     PRINT_COUNT = 30
     no_request_count = 0
@@ -69,7 +95,7 @@ def run_server(channel_name:str):
             if no_request_count == PRINT_COUNT:
                 log.info(f"🏓 ping — no requests for {PRINT_COUNT}s ...")
                 no_request_count = 0
-                
+
             time.sleep(1)
             continue
 
@@ -82,8 +108,8 @@ def run_server(channel_name:str):
             log.error(f"❌ Failed to parse request: {e}")
             continue
 
-        req_id   = req.get("id")
-        payload  = req.get("payload", "")[:8]
+        req_id = req.get("id")
+        payload = req.get("payload", "")[:8]
 
         log.info(f"📥 [{req_id[:8]}] Recv: {payload} | Type: {req['payload_type']}")
 

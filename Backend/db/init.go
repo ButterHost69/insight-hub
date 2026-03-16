@@ -6,8 +6,10 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 
 	"cloud.google.com/go/firestore"
+	"github.com/prachin77/insight-hub/models"
 	"github.com/qdrant/go-client/qdrant"
 	"github.com/redis/go-redis/v9"
 
@@ -18,6 +20,8 @@ var (
 	FirestoreClient *firestore.Client
 	RedisClient     *redis.Client
 	QdrantClient    *qdrant.Client
+
+	QdrantCollection string
 )
 
 const (
@@ -45,6 +49,56 @@ func Init(redisUrl, qdrantUrl, qdrantCollection string) error {
 		return fmt.Errorf("❌ Connecting to QdrantDB failed: %v", err)
 	}
 	log.Println("✅ Connected to QdrantDB successfully")
+
+	log.Println("Qdrant: Checking to see if the vector db is uptodate")
+
+	ctx := context.Background()
+	blogCount, err := GetBlogCount(ctx)
+	if err != nil {
+		Close()
+		return fmt.Errorf("Init: failed to get blogs count from firestore: %w", err)
+	}
+
+	pointCount, err := GetQdrantDocCount(ctx)
+	if err != nil {
+		Close()
+		return fmt.Errorf("Init: failed to get blogs count from qdrantdb (1): %w", err)
+	}
+
+	if blogCount != int64(pointCount) {
+		log.Println("Qdrant VectorDB is not upto-date")
+		log.Println("Adding All the Blogs on the Redis Queue")
+
+		blogs, err := GetAllBlogs(ctx)
+		if err != nil {
+			Close()
+			return fmt.Errorf("Init: could not fetch all blogs using firestore: %w", err)
+		}
+
+		log.Printf("Adding Processing %d Blogs\n", blogCount)
+		var wg sync.WaitGroup
+		for _, blog := range blogs {
+			wg.Go(
+				func() {
+					SendRedisRequest(models.RedisRequest{
+						ID:          blog.ID,
+						PayloadType: "Embedding",
+						Payload:     blog.BlogContent,
+					})
+				},
+			)
+		}
+
+		wg.Wait()
+		pointCount, err := GetQdrantDocCount(ctx)
+		if err != nil {
+			Close()
+			return fmt.Errorf("Init: failed to get blogs count from qdrantdb (2): %w", err)
+		}
+
+		log.Printf("✅ QdrantDB has: %d, need %d\n", pointCount, blogCount)
+		log.Println("✅ QdrantDB is now uptodate !!")
+	}
 
 	return nil
 }
@@ -76,7 +130,6 @@ func InitFirestore(credentialsPath string) error {
 func InitQdrantDB(dbLink, collectionName string) error {
 	ctx := context.Background()
 
-
 	rawLink := strings.TrimPrefix(dbLink, "https://")
 	rawLink = strings.TrimPrefix(rawLink, "http://")
 
@@ -84,7 +137,7 @@ func InitQdrantDB(dbLink, collectionName string) error {
 	if len(dblink_split) != 2 {
 		return fmt.Errorf("Qdrant: dblink if not in proper format, need: ip:port have %s", dbLink)
 	}
-	
+
 	db_url := dblink_split[0]
 	db_port, err := strconv.Atoi(dblink_split[1])
 	if err != nil {
@@ -128,6 +181,7 @@ func InitQdrantDB(dbLink, collectionName string) error {
 		log.Println("Qdrant: Collection created!")
 	}
 
+	QdrantCollection = collectionName
 	QdrantClient = client
 	return nil
 }

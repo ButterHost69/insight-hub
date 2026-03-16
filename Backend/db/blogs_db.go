@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 	"time"
 
@@ -99,6 +100,35 @@ func GetAllBlogs(ctx context.Context) ([]models.Blog, error) {
 		blogs = append(blogs, b)
 	}
 	return blogs, nil
+}
+
+// GetBlogCount returns the total number of blogs in Firestore without fetching all documents.
+func GetBlogCount(ctx context.Context) (int64, error) {
+	if FirestoreClient == nil {
+		return 0, errors.New("firestore client is not initialized")
+	}
+
+	query := FirestoreClient.Collection(blogsCollection)
+	results, err := query.NewAggregationQuery().WithCount("count").Get(ctx)
+	if err != nil {
+		return 0, err
+	}
+	countVal, ok := results["count"]
+	if !ok {
+		return 0, errors.New("count result not found")
+	}
+	switch v := countVal.(type) {
+	case int64:
+		return v, nil
+	case int:
+		return int64(v), nil
+	case uint64:
+		return int64(v), nil
+	case float64:
+		return int64(v), nil
+	default:
+		return 0, fmt.Errorf("count result is not int64, got %T", v)
+	}
 }
 
 // TitleExists checks if a blog with the same title already exists.

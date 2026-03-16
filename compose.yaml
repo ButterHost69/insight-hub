@@ -71,6 +71,7 @@ services:
       - AI_ASKMODE=local
     volumes:
       - .env:/app/.env
+      - fastembed-cache:/root/.cache/fastembed
     depends_on: 
       redis:
         condition: service_healthy
@@ -87,6 +88,7 @@ services:
       - AI_ASKMODE=api
     volumes:
       - .env:/app/.env
+      - fastembed-cache:/root/.cache/fastembed
     depends_on: 
       redis:
         condition: service_healthy
@@ -112,6 +114,7 @@ volumes:
   redis-data:
   qdrant-data:
   vllm-model-cache:
+  fastembed-cache:
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
