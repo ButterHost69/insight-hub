@@ -299,6 +299,47 @@ func UpdateBlog(ctx context.Context, blog *models.Blog) error {
 	return err
 }
 
+// GetBlogsByEmbedIDs fetches blogs by a list of embed_ids.
+func GetBlogsByEmbedIDs(ctx context.Context, embedIDs []string) ([]models.Blog, error) {
+	if FirestoreClient == nil {
+		return nil, errors.New("firestore client is not initialized")
+	}
+
+	if len(embedIDs) == 0 {
+		return nil, nil
+	}
+
+	var blogs []models.Blog
+	for _, embedID := range embedIDs {
+		iter := FirestoreClient.Collection(blogsCollection).Where("embed_id", "==", embedID).Limit(1).Documents(ctx)
+		doc, err := iter.Next()
+		if err != nil {
+			continue
+		}
+		var b models.Blog
+		if err := doc.DataTo(&b); err != nil {
+			continue
+		}
+		b.ID = doc.Ref.ID
+
+		userDoc, err := FirestoreClient.Collection("users").Doc(b.AuthorID).Get(ctx)
+		if err == nil {
+			var u models.User
+			if err := userDoc.DataTo(&u); err == nil {
+				b.AuthorName = u.FullName
+				b.AuthorUsername = u.Username
+			}
+		} else {
+			b.AuthorName = "Unknown Author"
+			b.AuthorUsername = "unknown"
+		}
+
+		blogs = append(blogs, b)
+	}
+
+	return blogs, nil
+}
+
 // DeleteBlog deletes a blog post and its comments, and decrements the author's blog count.
 func DeleteBlog(ctx context.Context, title string) error {
 	if FirestoreClient == nil {

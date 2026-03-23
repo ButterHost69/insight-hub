@@ -66,6 +66,7 @@ func main() {
 	r.GET("/blogs", handlers.GetBlogs)
 	r.POST("/blogs/increment-views", handlers.IncrementViews)
 	r.POST("/blogs/toggle-like", handlers.ToggleLike)
+	r.GET("/blogs/embed-id", handlers.GetBlogsByEmbedIDs)
 	r.POST("/comments", handlers.AddComment)
 	r.GET("/comments", handlers.GetComments)
 
