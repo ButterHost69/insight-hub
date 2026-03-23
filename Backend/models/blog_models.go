@@ -4,6 +4,7 @@ import "time"
 
 type Blog struct {
 	ID             string    `firestore:"id" json:"id"`
+	EmbedID        string    `firestore:"embed_id" json:"embed_id"`
 	Title          string    `firestore:"title" json:"title"`
 	BlogContent    string    `firestore:"blog_content" json:"blog_content"`
 	AuthorID       string    `firestore:"author_id" json:"author_id"`

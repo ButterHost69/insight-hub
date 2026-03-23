@@ -3,17 +3,16 @@ import time
 
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
-import numpy as np
 
-QdrantDBClient = None
-QdrantCollection = None
+QdrantDBClient : QdrantClient
+QdrantCollection : str
 retries = 5
 log = logging.getLogger(__name__)
 
 EMBEDDING_MODEL_DIM = 768
 
 
-def ping_qdrant(client):
+def ping_qdrant(client: QdrantClient):
     try:
         client.get_collections()
         return True
@@ -21,7 +20,7 @@ def ping_qdrant(client):
         return False
 
 
-def connect_qdrant(qdrant_url: str, qdrant_collection: str, model_name:int) -> bool:
+def connect_qdrant(qdrant_url: str, qdrant_collection: str, model_name:str) -> bool:
     global QdrantDBClient, QdrantCollection
     for attempt in range(retries):
         try:

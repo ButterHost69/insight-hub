@@ -4,10 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"sort"
 	"time"
 
 	"cloud.google.com/go/firestore"
+	firestorepb "cloud.google.com/go/firestore/apiv1/firestorepb"
+	"github.com/google/uuid"
 	"github.com/prachin77/insight-hub/models"
 	"google.golang.org/api/iterator"
 )
@@ -25,6 +28,7 @@ func CreateBlog(ctx context.Context, blog *models.Blog) (string, error) {
 	blog.Likes = 0
 	blog.Comments = 0
 	blog.Views = 0
+	blog.EmbedID = uuid.NewString()
 
 	docRef := FirestoreClient.Collection(blogsCollection).NewDoc()
 	blog.ID = docRef.ID
@@ -44,6 +48,15 @@ func CreateBlog(ctx context.Context, blog *models.Blog) (string, error) {
 			// Optional: you might want to return this error instead
 		}
 	}
+
+	go func() {
+		log.Printf("[CreateBlog] Sending Blog %s to embedding pipeline (embed_id: %s)\n", blog.ID, blog.EmbedID)
+		SendRedisRequest(models.RedisRequest{
+			ID:          blog.EmbedID,
+			PayloadType: "Embedding",
+			Payload:     blog.BlogContent,
+		})
+	}()
 
 	return docRef.ID, nil
 }
@@ -108,27 +121,31 @@ func GetBlogCount(ctx context.Context) (int64, error) {
 		return 0, errors.New("firestore client is not initialized")
 	}
 
-	query := FirestoreClient.Collection(blogsCollection)
-	results, err := query.NewAggregationQuery().WithCount("count").Get(ctx)
+	results, err := FirestoreClient.Collection(blogsCollection).
+		NewAggregationQuery().
+		WithCount("count").
+		Get(ctx)
 	if err != nil {
 		return 0, err
 	}
+
 	countVal, ok := results["count"]
 	if !ok {
 		return 0, errors.New("count result not found")
 	}
-	switch v := countVal.(type) {
-	case int64:
-		return v, nil
-	case int:
-		return int64(v), nil
-	case uint64:
-		return int64(v), nil
-	case float64:
-		return int64(v), nil
-	default:
-		return 0, fmt.Errorf("count result is not int64, got %T", v)
+
+	// Firestore returns *firestorepb.Value — unwrap it
+	pbVal, ok := countVal.(*firestorepb.Value)
+	if !ok {
+		return 0, fmt.Errorf("unexpected count type: %T", countVal)
 	}
+
+	intVal, ok := pbVal.ValueType.(*firestorepb.Value_IntegerValue)
+	if !ok {
+		return 0, fmt.Errorf("count value is not an integer, got %T", pbVal.ValueType)
+	}
+
+	return intVal.IntegerValue, nil
 }
 
 // TitleExists checks if a blog with the same title already exists.

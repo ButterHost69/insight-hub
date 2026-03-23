@@ -29,6 +29,7 @@ const (
 )
 
 func Init(redisUrl, qdrantUrl, qdrantCollection string) error {
+	log.Println("Connecting to Databases")
 	credentialsPath := "db/Firebase_Credentials.json"
 
 	// Initialize Firestore
@@ -81,7 +82,7 @@ func Init(redisUrl, qdrantUrl, qdrantCollection string) error {
 			wg.Go(
 				func() {
 					SendRedisRequest(models.RedisRequest{
-						ID:          blog.ID,
+						ID:          blog.EmbedID,
 						PayloadType: "Embedding",
 						Payload:     blog.BlogContent,
 					})
@@ -99,6 +100,8 @@ func Init(redisUrl, qdrantUrl, qdrantCollection string) error {
 		log.Printf("✅ QdrantDB has: %d, need %d\n", pointCount, blogCount)
 		log.Println("✅ QdrantDB is now uptodate !!")
 	}
+	log.Printf("✅ QdrantDB has: %d, need %d\n", pointCount, blogCount)
+	log.Println("✅ Blog Count and Point Count in Firebase and QdrantDB same !!")
 
 	return nil
 }
@@ -165,10 +168,12 @@ func InitQdrantDB(dbLink, collectionName string) error {
 		log.Printf("Qdrant collection %s does not exist\n", collectionName)
 		log.Printf("Creating Qdrant Collection %s\n", collectionName)
 
+		// TODO: if qdrantdb not created, just pass the "blogs" into the redis queue for the embeding creations and let python service create
+		// 		 the properly sized qdrant collection -- this way no issue with tracking & updating vector size
 		err = client.CreateCollection(context.Background(), &qdrant.CreateCollection{
 			CollectionName: collectionName,
 			VectorsConfig: qdrant.NewVectorsConfig(&qdrant.VectorParams{
-				Size:     1536,
+				Size:     768, // IMPORTANT: This should be the same as embedding models
 				Distance: qdrant.Distance_Cosine,
 			}),
 		})

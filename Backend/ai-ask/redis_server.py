@@ -1,5 +1,7 @@
 import os
+import numpy as np
 import redis
+from redis.exceptions import ConnectionError
 import time
 import json
 import logging
@@ -7,14 +9,14 @@ from fastembed import TextEmbedding
 from qdrant_db import store_embedding
 
 log = logging.getLogger(__name__)
-RedisClient = None
+RedisClient : redis.Redis
 retries = 3
 EMBEDDING_PRIORITY = 10
 
-embedding_model = None
+embedding_model : TextEmbedding
 
 
-def init_embedding_model(model_name):
+def init_embedding_model(model_name:str):
     global embedding_model
     cache_dir = os.getenv("FASTEMBED_CACHE_DIR", "/root/.cache/fastembed")
     embedding_model = TextEmbedding(model_name=model_name, cache_dir=cache_dir)
@@ -26,23 +28,28 @@ def connect_redis(host: str, port: int) -> bool:
     for attempt in range(retries):
         try:
             r = redis.Redis(host=host, port=port, decode_responses=True)
-            r.ping()
+            if not r.ping(): # type: ignore
+                log.warning(f"⚠️ Attempt {attempt + 1}/{retries} failed, retrying in 2s...")
+                time.sleep(2)    
+                continue
             RedisClient = r
             log.info("✅ Connected to Redis")
             return True
-        except redis.exceptions.ConnectionError:
+        except ConnectionError:
             log.warning(f"⚠️ Attempt {attempt + 1}/{retries} failed, retrying in 2s...")
             time.sleep(2)
     return False
 
 
 def close_server():
-    if RedisClient is not None:
+    try:
         RedisClient.close()
         log.info("Closing Connection to Redis")
+    except Exception as e:
+        print(f"Error in closing Redis Client: {e}")
 
 
-def process(req: dict) -> str:
+def process(req: dict[str, str]) -> str:
     payload_type = req["payload_type"]
 
     if payload_type == "RAG":
@@ -53,9 +60,8 @@ def process(req: dict) -> str:
         text = req.get("payload", "")
 
         vectors = embedding_model.embed(text)
-        vector_list = (
-            vectors[0].tolist() if hasattr(vectors[0], "tolist") else list(vectors[0])
-        )
+        first = next(iter(vectors))
+        vector_list = np.asarray(first).tolist() 
 
         success = store_embedding(doc_id, text, vector_list)
 
@@ -88,7 +94,7 @@ def run_server(channel_name: str):
     PRINT_COUNT = 30
     no_request_count = 0
     while True:
-        messages = RedisClient.zrange(channel_name, 0, 0, withscores=True)
+        messages = RedisClient.zrange(channel_name, 0, 0, withscores=True) # type: ignore
 
         if not messages:
             no_request_count += 1
@@ -99,11 +105,11 @@ def run_server(channel_name: str):
             time.sleep(1)
             continue
 
-        raw, _ = messages[0]
-        RedisClient.zrem(channel_name, raw)
+        raw, _ = messages[0] # type: ignore
+        RedisClient.zrem(channel_name, raw) # type: ignore
 
         try:
-            req = json.loads(raw)
+            req = json.loads(raw) # type: ignore
         except json.JSONDecodeError as e:
             log.error(f"❌ Failed to parse request: {e}")
             continue

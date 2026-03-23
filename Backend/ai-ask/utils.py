@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass
 import os
 
 
@@ -28,4 +28,4 @@ def load_config() -> Config:
     groq_api = os.getenv("GROQ_API", None)
     emb_model_name = os.getenv("EMBEDDING_MODEL_NAME", None)
     
-    return Config(redis_url, redis_channel, qdrant_url, qdrant_collection, ai_ask_mode, vllm_url, hf_token, groq_api, emb_model_name)
+    return Config(redis_url, redis_channel, qdrant_url, qdrant_collection, ai_ask_mode, vllm_url, hf_token, groq_api, emb_model_name) # type: ignore

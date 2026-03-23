@@ -12,9 +12,7 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 COPY Backend/ .
 
 ARG TARGETARCH
-
-RUN --mount=type=cache,target=/go/pkg/mod/ \
-    CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -o /bin/server .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -o /bin/server .
     
 FROM alpine:latest AS final
 
