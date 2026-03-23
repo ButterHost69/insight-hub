@@ -155,7 +155,7 @@ func ToggleLike(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, models.NewSuccessResponse("like status toggled", gin.H{"liked": isLiked}))
-}			
+}
 
 func AddComment(c *gin.Context) {
 	var req models.Comment
@@ -246,9 +246,32 @@ func GetComments(c *gin.Context) {
 
 	comments, err := db.GetComments(c.Request.Context(), blogID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.NewErrorResponse(err.Error(), nil))
+		c.JSON(http.StatusInternalServerError, models.NewErrorResponse("failed to fetch comments", nil))
 		return
 	}
 
 	c.JSON(http.StatusOK, models.NewSuccessResponse("comments fetched successfully", comments))
+}
+
+func GetBlogsByEmbedIDs(c *gin.Context) {
+	var req struct {
+		EmbedIDs []string `json:"embed_ids"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse("invalid request body", nil))
+		return
+	}
+
+	if len(req.EmbedIDs) == 0 {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse("embed_ids array is required", nil))
+		return
+	}
+
+	blogs, err := db.GetBlogsByEmbedIDs(c.Request.Context(), req.EmbedIDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.NewErrorResponse("failed to fetch blogs", nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.NewSuccessResponse("blogs fetched successfully", blogs))
 }

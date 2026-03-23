@@ -22,10 +22,12 @@ func main() {
 		log.Fatalf("❌ Failed to load configuration: %v", err)
 	}
 
-	// Initialize Firestore database
-	if err := db.Init(); err != nil {
-		log.Fatalf("❌ Failed to initialize Firestore: %v", err)
+	// Initialize Firestore and Connect to Redis , Qdrant database
+	if err := db.Init(config.RedisUrl, config.QdrantURL, config.QdrantCollection); err != nil {
+		log.Fatalf("❌ Failed to initialize Databases: %v", err)
 	}
+
+	log.Println("✅ Connected to all databases !!")
 	defer db.Close()
 
 	// Start gRPC Messaging Server in background
@@ -64,6 +66,7 @@ func main() {
 	r.GET("/blogs", handlers.GetBlogs)
 	r.POST("/blogs/increment-views", handlers.IncrementViews)
 	r.POST("/blogs/toggle-like", handlers.ToggleLike)
+	r.GET("/blogs/embed-id", handlers.GetBlogsByEmbedIDs)
 	r.POST("/comments", handlers.AddComment)
 	r.GET("/comments", handlers.GetComments)
 
@@ -76,6 +79,8 @@ func main() {
 	r.POST("/notifications/read-all", handlers.MarkAllNotificationsRead)
 	r.GET("/notifications/unread-count", handlers.GetUnreadCount)
 
+	// Ask AI
+	r.GET("/askAI", handlers.AskAI)
 	// Chat routes (via gRPC Handlers)
 	chatGroup := r.Group("/chat")
 	{

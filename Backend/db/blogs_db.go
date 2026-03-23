@@ -3,10 +3,14 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
 	"sort"
 	"time"
 
 	"cloud.google.com/go/firestore"
+	firestorepb "cloud.google.com/go/firestore/apiv1/firestorepb"
+	"github.com/google/uuid"
 	"github.com/prachin77/insight-hub/models"
 	"google.golang.org/api/iterator"
 )
@@ -24,6 +28,7 @@ func CreateBlog(ctx context.Context, blog *models.Blog) (string, error) {
 	blog.Likes = 0
 	blog.Comments = 0
 	blog.Views = 0
+	blog.EmbedID = uuid.NewString()
 
 	docRef := FirestoreClient.Collection(blogsCollection).NewDoc()
 	blog.ID = docRef.ID
@@ -43,6 +48,15 @@ func CreateBlog(ctx context.Context, blog *models.Blog) (string, error) {
 			// Optional: you might want to return this error instead
 		}
 	}
+
+	go func() {
+		log.Printf("[CreateBlog] Sending Blog %s to embedding pipeline (embed_id: %s)\n", blog.ID, blog.EmbedID)
+		SendRedisRequest(models.RedisRequest{
+			ID:          blog.EmbedID,
+			PayloadType: "Embedding",
+			Payload:     blog.BlogContent,
+		})
+	}()
 
 	return docRef.ID, nil
 }
@@ -99,6 +113,39 @@ func GetAllBlogs(ctx context.Context) ([]models.Blog, error) {
 		blogs = append(blogs, b)
 	}
 	return blogs, nil
+}
+
+// GetBlogCount returns the total number of blogs in Firestore without fetching all documents.
+func GetBlogCount(ctx context.Context) (int64, error) {
+	if FirestoreClient == nil {
+		return 0, errors.New("firestore client is not initialized")
+	}
+
+	results, err := FirestoreClient.Collection(blogsCollection).
+		NewAggregationQuery().
+		WithCount("count").
+		Get(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	countVal, ok := results["count"]
+	if !ok {
+		return 0, errors.New("count result not found")
+	}
+
+	// Firestore returns *firestorepb.Value — unwrap it
+	pbVal, ok := countVal.(*firestorepb.Value)
+	if !ok {
+		return 0, fmt.Errorf("unexpected count type: %T", countVal)
+	}
+
+	intVal, ok := pbVal.ValueType.(*firestorepb.Value_IntegerValue)
+	if !ok {
+		return 0, fmt.Errorf("count value is not an integer, got %T", pbVal.ValueType)
+	}
+
+	return intVal.IntegerValue, nil
 }
 
 // TitleExists checks if a blog with the same title already exists.
@@ -250,6 +297,47 @@ func UpdateBlog(ctx context.Context, blog *models.Blog) error {
 		{Path: "blog_image", Value: blog.BlogImage},
 	})
 	return err
+}
+
+// GetBlogsByEmbedIDs fetches blogs by a list of embed_ids.
+func GetBlogsByEmbedIDs(ctx context.Context, embedIDs []string) ([]models.Blog, error) {
+	if FirestoreClient == nil {
+		return nil, errors.New("firestore client is not initialized")
+	}
+
+	if len(embedIDs) == 0 {
+		return nil, nil
+	}
+
+	var blogs []models.Blog
+	for _, embedID := range embedIDs {
+		iter := FirestoreClient.Collection(blogsCollection).Where("embed_id", "==", embedID).Limit(1).Documents(ctx)
+		doc, err := iter.Next()
+		if err != nil {
+			continue
+		}
+		var b models.Blog
+		if err := doc.DataTo(&b); err != nil {
+			continue
+		}
+		b.ID = doc.Ref.ID
+
+		userDoc, err := FirestoreClient.Collection("users").Doc(b.AuthorID).Get(ctx)
+		if err == nil {
+			var u models.User
+			if err := userDoc.DataTo(&u); err == nil {
+				b.AuthorName = u.FullName
+				b.AuthorUsername = u.Username
+			}
+		} else {
+			b.AuthorName = "Unknown Author"
+			b.AuthorUsername = "unknown"
+		}
+
+		blogs = append(blogs, b)
+	}
+
+	return blogs, nil
 }
 
 // DeleteBlog deletes a blog post and its comments, and decrements the author's blog count.

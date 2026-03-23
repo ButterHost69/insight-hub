@@ -8,6 +8,93 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+    profiles: ["model_local", "model_api"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    profiles: ["model_local", "model_api"]
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6333/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  vllm:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - VLLM_WORKER_MULTIPROC_MODULE=vllm.model_executor.workers.quantized_fp8_model
+    volumes:
+      - vllm-model-cache:/root/.cache/huggingface
+    profiles: ["model_local"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >
+      --model Qwen/Qwen2.5-3B-Instruct 
+      --quantization awq 
+      --gpu-memory-utilization 0.85 
+      --max-model-len 4096 
+      --dtype float16
+      --host 0.0.0.0
+      --port 8000
+    healthcheck:
+      disable: true
+
+  ai-ask-local:
+    build:
+      context:  ./Backend/ai-ask
+    profiles: ["model_local"]
+    environment:
+      - AI_ASKMODE=local
+    volumes:
+      - .env:/app/.env
+      - fastembed-cache:/root/.cache/fastembed
+    depends_on: 
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started 
+      vllm:
+        condition: service_healthy
+
+  ai-ask-api:
+    build:
+      context:  ./Backend/ai-ask
+    profiles: ["model_api"]
+    environment:
+      - AI_ASKMODE=api
+    volumes:
+      - .env:/app/.env
+      - fastembed-cache:/root/.cache/fastembed
+    depends_on: 
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+
   server:
     build:
       context: .
@@ -15,7 +102,19 @@ services:
     ports:
       - 6969:6969
     volumes:
-      - ./Backend/.env:/app/.env
+      - .env:/app/.env
+    profiles: ["model_local", "model_api"]
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+  
+volumes:
+  redis-data:
+  qdrant-data:
+  vllm-model-cache:
+  fastembed-cache:
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
