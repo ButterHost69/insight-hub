@@ -59,7 +59,6 @@ def connect_qdrant(qdrant_url: str, qdrant_collection: str, model_name:str) -> b
 
 
 def store_embedding(doc_id: str, text: str, vector: list[float]) -> bool:
-    global QdrantDBClient, QdrantCollection
     try:
         point = PointStruct(id=doc_id, vector=vector, payload={"text": text})
         QdrantDBClient.upsert(collection_name=QdrantCollection, points=[point])
@@ -68,3 +67,13 @@ def store_embedding(doc_id: str, text: str, vector: list[float]) -> bool:
     except Exception as e:
         log.error(f"❌ Failed to store embedding for {doc_id}: {e}")
         return False
+
+
+def get_relevant_blogs(search_query:list[float], limit:int) -> list[str] | None:
+    response = QdrantDBClient.query_points(
+        collection_name=QdrantCollection,
+        query=search_query, 
+        limit=limit
+    ) 
+
+    return [str(point.id) for point in response.points]
