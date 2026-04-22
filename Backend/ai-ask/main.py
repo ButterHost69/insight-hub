@@ -1,5 +1,5 @@
 import logging
-from redis_server import connect_redis, run_server, close_server, init_embedding_model
+from redis_server import connect_redis, run_server, close_server, init_embedding_model, get_embedding_dim
 from qdrant_db import connect_qdrant
 import utils
 from llm import setup_llm
@@ -28,15 +28,17 @@ if __name__ == "__main__":
     
     if config.EMBEDDING_MODEL_NAME is None:
         raise Exception("EMBEDDING_MODEL_NAME is None, Please Provide a EMBEDDING_MODEL_NAME env Variable")
-    
+
+    init_embedding_model(model_name=config.EMBEDDING_MODEL_NAME)
+    embedding_dim = get_embedding_dim()
+    log.info(f"📐 Embedding dimension: {embedding_dim}")
+
     ifConnect = connect_qdrant(
-        qdrant_url=config.QDRANT_URL, qdrant_collection=config.QDRANT_COLLECTION, model_name=config.EMBEDDING_MODEL_NAME
+        qdrant_url=config.QDRANT_URL, qdrant_collection=config.QDRANT_COLLECTION, embedding_dim=embedding_dim
     )
     if not ifConnect:
         log.critical("❌ Could Not connect to Qdrant !!")
         exit(1)
-
-    init_embedding_model(model_name = config.EMBEDDING_MODEL_NAME)
     
     if config.REDIS_CHANNEL is None:
         raise Exception("REDIS_CHANNEL is None, Please Provide a REDIS_CHANNEL env Variable")

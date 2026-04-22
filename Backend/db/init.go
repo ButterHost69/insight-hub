@@ -174,6 +174,7 @@ func InitQdrantDB(dbLink, collectionName string) error {
 			CollectionName: collectionName,
 			VectorsConfig: qdrant.NewVectorsConfig(&qdrant.VectorParams{
 				Size:     768, // IMPORTANT: This should be the same as embedding models
+				// Size:     1536, // IMPORTANT: This should be the same as embedding models
 				Distance: qdrant.Distance_Cosine,
 			}),
 		})
