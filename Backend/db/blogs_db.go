@@ -309,32 +309,84 @@ func GetBlogsByEmbedIDs(ctx context.Context, embedIDs []string) ([]models.Blog, 
 		return nil, nil
 	}
 
+	// Remove Duplicate Embeds
+	embedIDSet := make(map[string]struct{}, len(embedIDs))
+	for _, id := range embedIDs {
+		embedIDSet[id] = struct{}{}
+	}
+
 	var blogs []models.Blog
-	for _, embedID := range embedIDs {
-		iter := FirestoreClient.Collection(blogsCollection).Where("embed_id", "==", embedID).Limit(1).Documents(ctx)
-		doc, err := iter.Next()
-		if err != nil {
-			continue
-		}
-		var b models.Blog
-		if err := doc.DataTo(&b); err != nil {
-			continue
-		}
-		b.ID = doc.Ref.ID
+	chunkSize := 30
+	uniqueIDs := make([]string, 0, len(embedIDSet))
+	for id := range embedIDSet {
+		uniqueIDs = append(uniqueIDs, id)
+	}
 
-		userDoc, err := FirestoreClient.Collection("users").Doc(b.AuthorID).Get(ctx)
-		if err == nil {
-			var u models.User
-			if err := userDoc.DataTo(&u); err == nil {
-				b.AuthorName = u.FullName
-				b.AuthorUsername = u.Username
+	for i := 0; i < len(uniqueIDs); i += chunkSize {
+		end := i + chunkSize
+		if end > len(uniqueIDs) {
+			end = len(uniqueIDs)
+		}
+		chunk := uniqueIDs[i:end]
+
+		iter := FirestoreClient.Collection(blogsCollection).Where("embed_id", "in", chunk).Documents(ctx)
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
 			}
-		} else {
-			b.AuthorName = "Unknown Author"
-			b.AuthorUsername = "unknown"
+			if err != nil {
+				break
+			}
+			var b models.Blog
+			if err := doc.DataTo(&b); err != nil {
+				continue
+			}
+			b.ID = doc.Ref.ID
+			blogs = append(blogs, b)
 		}
+	}
 
-		blogs = append(blogs, b)
+	if len(blogs) == 0 {
+		return blogs, nil
+	}
+
+	authorSet := make(map[string]struct{}, len(blogs))
+	for _, b := range blogs {
+		if b.AuthorID != "" {
+			authorSet[b.AuthorID] = struct{}{}
+		}
+	}
+
+	userRefs := make([]*firestore.DocumentRef, 0, len(authorSet))
+	for aid := range authorSet {
+		userRefs = append(userRefs, FirestoreClient.Collection("users").Doc(aid))
+	}
+
+	userMap := make(map[string]*models.User, len(userRefs))
+	if len(userRefs) > 0 {
+		userDocs, err := FirestoreClient.GetAll(ctx, userRefs)
+		if err == nil {
+			for _, ud := range userDocs {
+				if !ud.Exists() {
+					continue
+				}
+				var u models.User
+				if err := ud.DataTo(&u); err == nil {
+					userMap[ud.Ref.ID] = &u
+				}
+			}
+		}
+	}
+
+	for i := range blogs {
+		if u, ok := userMap[blogs[i].AuthorID]; ok {
+			blogs[i].AuthorName = u.FullName
+			blogs[i].AuthorUsername = u.Username
+		} else {
+			blogs[i].AuthorName = "Unknown Author"
+			blogs[i].AuthorUsername = "unknown"
+		}
 	}
 
 	return blogs, nil

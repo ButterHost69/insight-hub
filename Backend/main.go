@@ -48,12 +48,11 @@ func main() {
 	// Basic middlewares
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+	r.Use(middleware.CORSMiddleware())
 	
 	if *pprofFlag {
 		pprof.Register(r)
 		log.Println("⚙️  pprof profiling enabled at /debug/pprof/")
-	}else {
-		r.Use(middleware.CORSMiddleware())
 	}
 
 	// Basic health check route
