@@ -39,6 +39,7 @@ COPY --from=build /bin/server /bin/
 EXPOSE 6969
 
 COPY .env /app/.env
+COPY .env.pprof /app/.env.pprof
 COPY Backend/db /app/db
 WORKDIR /app
 ENTRYPOINT [ "/bin/server" ]

@@ -1,0 +1,131 @@
+{
+  "benchmark_type": "load",
+  "config": {
+    "num_concurrent": 5,
+    "num_requests": 20,
+    "timeout": 60,
+    "backend_url": "http://localhost:6969",
+    "ramp_up": false
+  },
+  "summary": {
+    "total_requests": 20,
+    "successful": 0,
+    "failed": 20,
+    "success_rate": 0.0,
+    "wall_time_s": 90.89,
+    "requests_per_second": 0.22
+  },
+  "latency_all": {
+    "mean_ms": 22723.13,
+    "median_ms": 15412.55,
+    "p90_ms": 60064.5,
+    "p95_ms": 0,
+    "p99_ms": 0,
+    "min_ms": 0.77,
+    "max_ms": 60066.15,
+    "stdev_ms": 25610.31
+  },
+  "latency_successful": {},
+  "errors": [
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "status_code": 0,
+      "error": "Request timed out"
+    },
+    {
+      "question": "What is machine learning?",
+      "status_code": 0,
+      "error": "Request timed out"
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "status_code": 0,
+      "error": "Request timed out"
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "status_code": 0,
+      "error": "Request timed out"
+    },
+    {
+      "question": "What is machine learning?",
+      "status_code": 0,
+      "error": "Request timed out"
+    },
+    {
+      "question": "What are the best practices for writing clean code",
+      "status_code": 0,
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "question": "What are the best practices for writing clean code",
+      "status_code": 0,
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "status_code": 0,
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "status_code": 0,
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "status_code": 0,
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "status_code": 0,
+      "error": "('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
+    },
+    {
+      "question": "What are the best practices for writing clean code",
+      "status_code": 0,
+      "error": "('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "status_code": 0,
+      "error": "('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
+    },
+    {
+      "question": "What is machine learning?",
+      "status_code": 0,
+      "error": "('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
+    },
+    {
+      "question": "What is machine learning?",
+      "status_code": 0,
+      "error": "('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
+    },
+    {
+      "question": "What are the best practices for writing clean code",
+      "status_code": 0,
+      "error": "('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "status_code": 0,
+      "error": "('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "status_code": 0,
+      "error": "('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "status_code": 0,
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "question": "What are the best practices for writing clean code",
+      "status_code": 0,
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    }
+  ]
+}

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/prachin77/insight-hub/chat/Chat_Backend"
 	"github.com/prachin77/insight-hub/chat/Chat_Handlers"
@@ -16,8 +18,10 @@ import (
 )
 
 func main() {
-	// Load application configuration from .env
-	config, err := utils.LoadConfig()
+	pprofFlag := flag.Bool("pprof", false, "enable pprof profiling endpoints")
+	flag.Parse()
+
+	config, err := utils.LoadConfig(*pprofFlag)
 	if err != nil {
 		log.Fatalf("❌ Failed to load configuration: %v", err)
 	}
@@ -44,7 +48,13 @@ func main() {
 	// Basic middlewares
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-	r.Use(middleware.CORSMiddleware())
+	
+	if *pprofFlag {
+		pprof.Register(r)
+		log.Println("⚙️  pprof profiling enabled at /debug/pprof/")
+	}else {
+		r.Use(middleware.CORSMiddleware())
+	}
 
 	// Basic health check route
 	r.GET("/health", func(c *gin.Context) {
