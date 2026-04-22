@@ -9,8 +9,6 @@ QdrantCollection : str
 retries = 5
 log = logging.getLogger(__name__)
 
-EMBEDDING_MODEL_DIM = 768
-
 
 def ping_qdrant(client: QdrantClient):
     try:
@@ -20,7 +18,7 @@ def ping_qdrant(client: QdrantClient):
         return False
 
 
-def connect_qdrant(qdrant_url: str, qdrant_collection: str, model_name:str) -> bool:
+def connect_qdrant(qdrant_url: str, qdrant_collection: str, embedding_dim: int) -> bool:
     global QdrantDBClient, QdrantCollection
     for attempt in range(retries):
         try:
@@ -43,7 +41,7 @@ def connect_qdrant(qdrant_url: str, qdrant_collection: str, model_name:str) -> b
                 client.create_collection(
                     collection_name=qdrant_collection,
                     vectors_config=VectorParams(
-                        size=client.get_embedding_size(model_name), distance=Distance.COSINE
+                        size=embedding_dim, distance=Distance.COSINE
                     ),
                 )
             QdrantDBClient = client

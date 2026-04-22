@@ -10,4 +10,10 @@ dependencies = [
     "groq>=1.1.1",
     "qdrant-client>=1.17.0",
     "redis>=7.3.0",
+    "requests>=2.32.5",
+]
+
+[project.optional-dependencies]
+benchmark = [
+    "ragas>=0.4.3",
 ]

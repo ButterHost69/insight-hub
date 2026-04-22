@@ -1,0 +1,144 @@
+{
+  "benchmark_type": "generation",
+  "config": {
+    "embedding_model": "nomic-ai/nomic-embed-text-v1.5",
+    "collection": "blog_posts",
+    "llm_model": "openai/gpt-oss-120b",
+    "num_questions": 5
+  },
+  "retrieval_hit_rate": 1.0,
+  "ragas_scores": null,
+  "latency_summary": {
+    "mean_retrieval_s": 0.0033,
+    "mean_llm_s": 0.0
+  },
+  "per_question_results": [
+    {
+      "question": "What is machine learning?",
+      "ground_truth": "Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed. It uses algorithms to identify patterns in data and make decisions. The three main types are supervised learning (trained on labeled data), unsupervised learning (finds patterns in unlabeled data), and reinforcement learning (learns through rewards and penalties). Common applications include image recognition, natural language processing, and recommendation systems. The key distinction from traditional programming is that you provide data and answers to learn the rules, rather than providing rules and data to get answers.",
+      "generated_answer": "ERROR: Error code: 413 - {'error': {'message': 'Request too large for model `openai/gpt-oss-120b` in organization `org_01kkgr90kre7p8fr60q07atknr` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 8799, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "contexts": [
+        "Blog Title: Introduction to Machine Learning: A Beginner's Guide\n-------------\nBlog Body:\nMachine learning is a subset of artificial intelligence that focuses on building systems that learn from data. Instead of being explicitly programmed to perform a task, these systems identify patterns in data and make decisions with minimal human intervention. There are three main types of machine learning: supervised learning, where the model is trained on labeled data; unsupervised learning, where the model finds hidden patterns in unlabeled data; and reinforcement learning, where an agent learns by interacting with an environment and receiving rewards or penalties. Common applications include image recognition, natural language processing, recommendation systems, and autonomous vehicles. The key difference between traditional programming and machine learning is that in traditional programming, you give the computer rules and data to get answers, while in machine learning, you give the computer answers and data to learn the rules.\n-------------",
+        "Blog Title: Machine Learning in Healthcare: Transforming Patient Diagnostics\n-------------\nBlog Body:\nMachine learning is revolutionizing healthcare diagnostics by analyzing medical images, electronic health records, and genomic data. Computer vision models detect cancer in radiology scans with accuracy matching or exceeding radiologists. Natural language processing extracts insights from unstructured clinical notes. Predictive models identify patients at risk of readmission or deterioration. Drug discovery benefits from molecular structure analysis and protein folding predictions. Wearable devices continuously monitor vital signs and alert providers to anomalies. Challenges include data privacy regulations like HIPAA, algorithmic bias in training data, and the need for explainability in clinical decisions. FDA approval processes for AI-powered medical devices are evolving. The integration of federated learning allows hospitals to collaborate on model training without sharing sensitive patient data, addressing privacy concerns while enabling larger-scale studies.\n-------------",
+        "Blog Title: Understanding Neural Networks: From Perceptrons to Deep Learning\n-------------\nBlog Body:\nNeural networks are the backbone of modern machine learning. Inspired by the structure of the human brain, they consist of layers of interconnected nodes or neurons. Each connection has a weight that adjusts during training. The simplest form, the perceptron, takes inputs and produces a binary output. Deep neural networks stack multiple hidden layers between input and output, enabling them to learn complex hierarchical representations. Training involves backpropagation, where errors are propagated backwards through the network to adjust weights. Convolutional neural networks excel at image tasks, while recurrent neural networks handle sequential data. The rise of GPUs and large datasets has made training deep networks feasible, leading to breakthroughs in computer vision, speech recognition, and natural language understanding.\n-------------"
+      ],
+      "retrieved_ids": [
+        "c0fbdbcd-b538-4010-bc9a-8074b92e77e0",
+        "e49455ef-0f83-4348-a7db-3685ef99a7e1",
+        "a3685ccf-efa4-4668-bcc8-86a479ccdcc0"
+      ],
+      "relevant_ids": [
+        "c0fbdbcd-b538-4010-bc9a-8074b92e77e0",
+        "a3685ccf-efa4-4668-bcc8-86a479ccdcc0",
+        "f9b2b51b-3f38-40df-a278-5250e9d13d00",
+        "95a0f18f-cecb-4b77-a05a-85372d81e9fe",
+        "3540d5b3-c30f-473a-88ac-8301b8f7778f"
+      ],
+      "retrieval_hit": true,
+      "retrieval_time_s": 0.004,
+      "llm_time_s": 0
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "ground_truth": "Blockchain is a distributed ledger technology that records transactions across a network of computers. Each block contains a batch of transactions, a timestamp, and a cryptographic hash of the previous block, creating an immutable chain. Transactions are validated through consensus mechanisms like Proof of Work (miners solve puzzles) or Proof of Stake (validators lock up cryptocurrency). Once validated, blocks are added to the chain and cannot be altered retroactively without changing all subsequent blocks, making it tamper-resistant. The decentralized nature means no single entity controls the data, enabling trust without intermediaries. Smart contracts add programmable logic, enabling decentralized applications and financial services.",
+      "generated_answer": "ERROR: Error code: 413 - {'error': {'message': 'Request too large for model `openai/gpt-oss-120b` in organization `org_01kkgr90kre7p8fr60q07atknr` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 8822, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "contexts": [
+        "Blog Title: Blockchain Fundamentals: How Distributed Ledgers Work\n-------------\nBlog Body:\nBlockchain is a distributed ledger technology that records transactions across a network of computers. Each block contains a batch of transactions, a timestamp, and a cryptographic hash of the previous block, creating an immutable chain. When a new transaction occurs, it is broadcast to a peer-to-peer network of nodes. These nodes validate the transaction using consensus mechanisms such as Proof of Work or Proof of Stake. Once validated, the transaction is combined with others into a new block, which is added to the existing chain. The decentralized nature means no single entity controls the data, making it resistant to tampering. The hash linkage ensures that altering any block would require changing all subsequent blocks, which is computationally infeasible. This transparency and immutability make blockchain ideal for applications requiring trust without intermediaries.\n-------------",
+        "Blog Title: Understanding Consensus Mechanisms: Proof of Work vs Proof of Stake\n-------------\nBlog Body:\nConsensus mechanisms are the heart of blockchain networks, ensuring all participants agree on the state of the ledger. Proof of Work requires miners to solve complex mathematical puzzles, consuming significant computational energy. The first miner to solve the puzzle gets to add the block and receive a reward. This mechanism secures Bitcoin and has proven robust since 2009. Proof of Stake selects validators based on the amount of cryptocurrency they hold and are willing to lock up as collateral. Validators are chosen pseudo-randomly, and dishonest behavior results in losing their stake. Proof of Stake consumes dramatically less energy, making it environmentally preferable. Ethereum transitioned from PoW to PoS in 2022 through The Merge. Other variations include Delegated Proof of Stake, Proof of Authority, and Proof of History, each with different trade-offs between decentralization, speed, and security.\n-------------",
+        "Blog Title: The Rise of Cryptocurrency: Understanding Digital Finance\n-------------\nBlog Body:\nCryptocurrency has transformed from a niche technology to a mainstream financial instrument. Bitcoin, created in 2009 by the pseudonymous Satoshi Nakamoto, introduced blockchain-based decentralized currency. Ethereum expanded the concept with smart contracts, enabling decentralized applications. Trading involves understanding market volatility, technical analysis, and risk management. DeFi platforms offer lending, borrowing, and yield farming without traditional intermediaries. NFTs created new markets for digital art and collectibles. Environmental concerns persist regarding proof-of-work mining energy consumption. Regulatory frameworks are evolving globally, with some countries embracing crypto and others restricting it. Stablecoins pegged to fiat currencies aim to reduce volatility. CBDCs represent government responses to the crypto revolution. Understanding wallets, exchanges, and security practices is essential for anyone entering this space.\n-------------"
+      ],
+      "retrieved_ids": [
+        "0c697e69-c830-4923-95a7-45173a6b4b56",
+        "8df259a3-2a83-43da-84cf-01da7cce2699",
+        "5cb7c4d7-fe8d-4fca-a404-ef9dcfc59138"
+      ],
+      "relevant_ids": [
+        "0c697e69-c830-4923-95a7-45173a6b4b56",
+        "8df259a3-2a83-43da-84cf-01da7cce2699",
+        "08bcf36f-c3a7-4388-afe2-3b2400dc75f7",
+        "23e3cc51-5b88-4968-a1b9-3c4df4866903",
+        "4ae0930e-6550-4a63-b5f8-ef93e4cdf8f6"
+      ],
+      "retrieval_hit": true,
+      "retrieval_time_s": 0.0029,
+      "llm_time_s": 0
+    },
+    {
+      "question": "What are the best practices for writing clean code?",
+      "ground_truth": "Clean code best practices include: using meaningful and descriptive names that reveal intent (e.g., calculateDiscountedPrice instead of calc); keeping functions short and focused on one task (under 20 lines); avoiding deep nesting by using early returns and guard clauses; writing comments that explain why, not what; following consistent formatting conventions; applying the Boy Scout Rule (leave code cleaner than you found it); following SOLID principles (Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion); writing tests first using TDD (Red-Green-Refactor cycle); refactoring continuously to improve structure without changing behavior; and using version control effectively with descriptive commit messages and feature branches.",
+      "generated_answer": "ERROR: Error code: 413 - {'error': {'message': 'Request too large for model `openai/gpt-oss-120b` in organization `org_01kkgr90kre7p8fr60q07atknr` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 8888, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "contexts": [
+        "Blog Title: Clean Code Principles: Writing Software That Humans Can Read\n-------------\nBlog Body:\nClean code is code that is easy to read, understand, and modify. The single most important principle is that code is read far more times than it is written, so optimize for readability. Use descriptive variable and function names that reveal intent; a name like calculateDiscountedPrice is infinitely better than calc or d. Functions should do one thing and do it well. If you need to use and or but to describe what a function does, it is doing too much. Keep functions short, ideally under 20 lines. Avoid deep nesting by using early returns and guard clauses. Write comments to explain why, not what; the code itself should explain what. Organize code so related concepts are close together. Follow consistent formatting conventions within your team. The Boy Scout Rule applies: always leave the code cleaner than you found it. These principles, popularized by Robert C. Martin, form the foundation of professional software development.\n-------------",
+        "Blog Title: Refactoring Techniques: When and How to Improve Existing Code\n-------------\nBlog Body:\nRefactoring is the process of improving code structure without changing its behavior. The key insight is that refactoring should be a continuous activity, not a separate project. Common refactoring techniques include extracting methods from long functions, replacing conditional logic with polymorphism, introducing parameter objects to reduce argument lists, and replacing magic numbers with named constants. The Extract Method pattern takes a fragment of code that can be grouped, turns it into a method, and replaces the original code with a call to the new method. Replace Conditional with Polymorphism eliminates complex if-else chains by creating subclass hierarchies. Move Field and Move Method relocate responsibilities to their proper classes. Before refactoring, ensure you have solid tests that characterize current behavior. Run tests frequently during refactoring to catch regressions early. The goal is always to make the code easier to understand while preserving all existing functionality.\n-------------",
+        "Blog Title: Test-Driven Development: Writing Tests Before Code\n-------------\nBlog Body:\nTest-Driven Development is a practice where you write a failing test before writing the production code to make it pass. The cycle is Red, Green, Refactor: write a failing test, write the minimal code to pass it, then refactor while keeping tests green. TDD forces you to think about interfaces and expected behavior before implementation, leading to better designed code. Unit tests should be fast, isolated, and repeatable. Use mocks and stubs to isolate external dependencies. Integration tests verify that components work together correctly. Aim for high coverage of business logic rather than chasing 100 percent line coverage. Maintain a fast test suite; slow tests discourage execution and reduce value. Tests serve as living documentation that describes expected behavior. When a test breaks, it signals either a bug or an intentional behavior change. The confidence to refactor freely comes from a comprehensive test suite that provides rapid feedback.\n-------------"
+      ],
+      "retrieved_ids": [
+        "0a2d9448-9946-4319-9c3e-71537c9cc0d7",
+        "be529699-1f4a-4044-8b76-cbd1162206d6",
+        "40331447-eee0-4a06-b57e-bf2a8fa249f8"
+      ],
+      "relevant_ids": [
+        "0a2d9448-9946-4319-9c3e-71537c9cc0d7",
+        "05d3d6e8-a403-4de3-880a-5f6a977687b7",
+        "5cfd3149-4a53-4962-af47-f98cd6ef00d9",
+        "be529699-1f4a-4044-8b76-cbd1162206d6",
+        "40331447-eee0-4a06-b57e-bf2a8fa249f8",
+        "701c45a3-5e56-4b2e-8c2d-afd1dcf11871"
+      ],
+      "retrieval_hit": true,
+      "retrieval_time_s": 0.0028,
+      "llm_time_s": 0
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "ground_truth": "Meditation provides numerous health benefits backed by scientific research. It physically changes brain structure by increasing gray matter density in the hippocampus (learning and memory) and thickening the prefrontal cortex (executive function) while shrinking the amygdala (stress response)..Regular meditation reduces cortisol levels, lowers blood pressure, and decreases systemic inflammation. It improves sleep quality by reducing hyperarousal and activating the parasympathetic nervous system. For chronic pain, meditation reduces emotional suffering by 40-57 percent by strengthening regulatory pathways. It improves concentration, emotional regulation, and cognitive flexibility. Studies show these benefits are measurable after as few as 11 hours of cumulative practice, with the greatest effects observed after 8-12 weeks of consistent daily practice.",
+      "generated_answer": "ERROR: Error code: 413 - {'error': {'message': 'Request too large for model `openai/gpt-oss-120b` in organization `org_01kkgr90kre7p8fr60q07atknr` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 8867, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "contexts": [
+        "Blog Title: How Meditation Improves Sleep Quality and Duration\n-------------\nBlog Body:\nSleep disorders affect approximately 30 percent of adults, and meditation offers a drug-free solution. A systematic review of 18 studies found that mindfulness meditation significantly improved sleep quality scores on the Pittsburgh Sleep Quality Index. The mechanism involves reducing hyperarousal, the state of elevated alertness that prevents the transition from wakefulness to sleep. Meditation activates the parasympathetic nervous system, lowering heart rate and body temperature, both necessary for sleep onset. Body scan meditation, where attention moves progressively through body parts, releases muscular tension accumulated during the day. Sleep-specific practices include Yoga Nidra, which guides practitioners into the hypnagogic state between waking and sleeping. Consistency matters more than duration; 10 minutes before bed nightly produces better results than occasional longer sessions. Unlike sleep medications, meditation has no side effects, no dependency risk, and improves overall well-being beyond just sleep quality.\n-------------",
+        "Blog Title: Meditation for Stress Reduction: Evidence-Based Techniques\n-------------\nBlog Body:\nStress reduction is the most well-documented benefit of meditation. Mindfulness-Based Stress Reduction, developed by Jon Kabat-Zinn at the University of Massachusetts, has been validated in over 200 clinical trials as effective for reducing anxiety, depression, and pain. The technique involves focused attention on breath, body scans, and gentle yoga. When stress triggers the sympathetic nervous system, meditation activates the parasympathetic response, lowering heart rate, blood pressure, and cortisol. A meta-analysis of 209 studies found moderate to large effect sizes for anxiety and stress reduction. Even brief sessions of 10 minutes significantly reduce perceived stress. The key mechanism is decoupling the stimulus from the reaction; instead of automatically reacting to stressors, meditators create a pause that allows for more measured responses. Daily practice amplifies benefits, with the greatest stress reduction observed after 8 to 12 weeks of consistent practice.\n-------------",
+        "Blog Title: Meditation Techniques for Stress Relief and Mental Clarity\n-------------\nBlog Body:\nMeditation encompasses various techniques for training attention and awareness. Mindfulness meditation involves observing thoughts without judgment, anchoring attention to breath or bodily sensations. Transcendental Meditation uses a personal mantra repeated silently for 20 minutes twice daily. Body scan meditation systematically focuses attention on each part of the body, releasing tension progressively. Walking meditation combines movement with awareness, suitable for those who find still sitting challenging. Loving-kindness meditation cultivates compassion by directing goodwill toward self and others. Start with just five minutes daily and gradually increase duration. Apps like Headspace and Waking Up provide guided sessions for beginners. Research shows regular meditation reduces cortisol levels, improves emotional regulation, and strengthens the prefrontal cortex responsible for executive function. Consistency matters more than duration; a daily ten-minute practice yields more benefit than occasional hour-long sessions.\n-------------"
+      ],
+      "retrieved_ids": [
+        "934dae98-3e02-4594-a553-10cbe37031f9",
+        "dc65271b-e1f3-4732-9b30-2d15a2ba6a16",
+        "66ecef8e-a6be-481d-8517-e8382ef99720"
+      ],
+      "relevant_ids": [
+        "f6d29741-a060-4f1a-807d-e58013cb8f6c",
+        "dc65271b-e1f3-4732-9b30-2d15a2ba6a16",
+        "934dae98-3e02-4594-a553-10cbe37031f9",
+        "77f38a51-6c2e-4c96-be56-f6edbb651efb",
+        "51230813-9258-448e-89f5-fb7d525e1b65"
+      ],
+      "retrieval_hit": true,
+      "retrieval_time_s": 0.0037,
+      "llm_time_s": 0
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "ground_truth": "Budget-friendly international travel requires strategic planning across multiple areas. Choose affordable destinations where your currency stretches further (Southeast Asia, Eastern Europe, Latin America). Book flights 2-8 months in advance using price comparison tools and fly on cheaper days (Tuesday/Wednesday). Save on accommodation with hostels, guesthouses, or Airbnb monthly discounts. Eat local street food for authentic meals at fraction of restaurant costs. Use public transportation instead of taxis. Budget $40-70 per day in affordable countries versus $150+ in expensive ones. Travel during shoulder seasons for lower prices and fewer crowds. Get travel insurance for emergencies. Use free walking tours and museum free days for activities. Pack light with carry-on only to avoid baggage fees.",
+      "generated_answer": "ERROR: Error code: 413 - {'error': {'message': 'Request too large for model `openai/gpt-oss-120b` in organization `org_01kkgr90kre7p8fr60q07atknr` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 8920, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "contexts": [
+        "Blog Title: The Complete Guide to Budget International Travel Planning\n-------------\nBlog Body:\nBudget international travel is entirely feasible with strategic planning. Start by choosing affordable destinations where your currency stretches further; Southeast Asia, Eastern Europe, and parts of Latin America offer incredible value. Book flights 2 to 8 months in advance using Google Flights price tracking and flexible date searches. Tuesday and Wednesday departures are typically cheaper. Accommodation costs drop significantly with hostels, guesthouses, and apartment rentals through Booking.com and Airbnb. Local street food costs a fraction of restaurant meals and offers authentic cultural experiences. Public transportation including trains, buses, and bike shares beats taxi fares in most countries. Travel insurance from providers like Safety Wing costs under 50 dollars monthly and prevents catastrophic expenses. Visa-free or visa-on-arrival destinations eliminate application fees and processing time. Free walking tours, museum free days, and natural attractions provide enriching experiences without cost. Budget 40 to 70 dollars per day for mid-range travel in affordable countries, compared to 150 or more in expensive destinations.\n-------------",
+        "Blog Title: Finding Cheap Flights: Hacks That Actually Save Money\n-------------\nBlog Body:\nFinding affordable flights requires strategy and flexibility. Google Flights Explore feature shows the cheapest destinations from your airport on a map view. Skyscanner and Kiwi.com compare prices across hundreds of airlines and booking sites. Set price alerts for specific routes and book when prices drop below average. Flying on Tuesdays, Wednesdays, and Saturdays typically offers the lowest fares. Red-eye flights and early morning departures cost less than convenient times. Consider flying into alternate airports; London Stansted instead of Heathrow can save hundreds. Error fares and mistake fares, posted on sites like The Points Guy and Secret Flying, offer premium cabins at economy prices. Round-trip tickets often cost less than two one-ways. The 24-hour free cancellation rule lets you book to lock in a price and continue searching. Budget airlines like Ryanair, AirAsia, and SpiceJet offer rock-bottom base fares but watch for baggage and seat selection fees. Booking with a credit card that offers travel protection adds security to your purchase.\n-------------",
+        "Blog Title: Sustainable Travel: Exploring the World Responsibly\n-------------\nBlog Body:\nSustainable travel minimizes environmental impact while maximizing positive contributions to local communities. Choose direct flights when possible since takeoff and landing produce the most emissions. Carbon offset programs through airlines or organizations like Gold Standard fund renewable energy projects. Stay in locally owned accommodations rather than international chains to keep money in the community. Eat at family-run restaurants and shop at local markets. Carry a reusable water bottle, shopping bag, and utensils to reduce single-use plastic. Respect wildlife by choosing ethical tour operators; avoid elephant rides, tiger temples, and dolphin shows. Walk, cycle, or use public transportation instead of taxis. Learn basic phrases in the local language as a sign of respect. Choose experiences over possessions; a cooking class creates more lasting memories than souvenirs. Support conservation through park entrance fees in national parks and wildlife reserves. Overtourism degrades destinations; consider alternatives to the most popular spots and travel during shoulder seasons to distribute economic benefits more evenly.\n-------------"
+      ],
+      "retrieved_ids": [
+        "b61907ad-79b4-4b51-a7ca-b9f194863e5c",
+        "3d266219-3ba6-4466-9b86-149ea5d05ced",
+        "6cd45bae-cf78-4f3c-bc99-6228398246d9"
+      ],
+      "relevant_ids": [
+        "b61907ad-79b4-4b51-a7ca-b9f194863e5c",
+        "3d266219-3ba6-4466-9b86-149ea5d05ced",
+        "8f9380f4-079c-440f-b80a-59834efecf67",
+        "b70dfbfc-701f-4c33-88ac-c87b3fedf941",
+        "6cd45bae-cf78-4f3c-bc99-6228398246d9",
+        "cb2b13de-8653-4cf4-8805-1bb0722a43e1"
+      ],
+      "retrieval_hit": true,
+      "retrieval_time_s": 0.0029,
+      "llm_time_s": 0
+    }
+  ]
+}

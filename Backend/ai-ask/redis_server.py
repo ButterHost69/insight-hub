@@ -38,6 +38,11 @@ def init_embedding_model(model_name:str):
     log.info(f"✅ Loaded embedding model: {model_name}")
 
 
+def get_embedding_dim() -> int:
+    test_vector = next(iter(embedding_model.embed("__dim_test__")))
+    return len(test_vector)
+
+
 def connect_redis(host: str, port: int) -> bool:
     global RedisClient
     for attempt in range(retries):

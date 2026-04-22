@@ -1,0 +1,131 @@
+{
+  "benchmark_type": "load",
+  "config": {
+    "num_concurrent": 5,
+    "num_requests": 20,
+    "timeout": 60,
+    "backend_url": "http://localhost:6969",
+    "ramp_up": false
+  },
+  "summary": {
+    "total_requests": 20,
+    "successful": 0,
+    "failed": 20,
+    "success_rate": 0.0,
+    "wall_time_s": 0.66,
+    "requests_per_second": 30.43
+  },
+  "latency_all": {
+    "mean_ms": 155.25,
+    "median_ms": 46.65,
+    "p90_ms": 426.14,
+    "p95_ms": 0,
+    "p99_ms": 0,
+    "min_ms": 33.28,
+    "max_ms": 622.42,
+    "stdev_ms": 175.15
+  },
+  "latency_successful": {},
+  "errors": [
+    {
+      "question": "How does blockchain technology work?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How does blockchain technology work?\",\"blogs\":[]}"
+    },
+    {
+      "question": "What are the best practices for writing clean code",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: What are the best practices for writing clean code?\",\"blogs\":[]}"
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: What are the health benefits of meditation?\",\"blogs\":[]}"
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How to plan a budget-friendly international trip?\",\"blogs\":[]}"
+    },
+    {
+      "question": "What is machine learning?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: What is machine learning?\",\"blogs\":[]}"
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How to plan a budget-friendly international trip?\",\"blogs\":[]}"
+    },
+    {
+      "question": "What are the best practices for writing clean code",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: What are the best practices for writing clean code?\",\"blogs\":[]}"
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How to plan a budget-friendly international trip?\",\"blogs\":[]}"
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How does blockchain technology work?\",\"blogs\":[]}"
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: What are the health benefits of meditation?\",\"blogs\":[]}"
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How does blockchain technology work?\",\"blogs\":[]}"
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: What are the health benefits of meditation?\",\"blogs\":[]}"
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How to plan a budget-friendly international trip?\",\"blogs\":[]}"
+    },
+    {
+      "question": "What are the best practices for writing clean code",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: What are the best practices for writing clean code?\",\"blogs\":[]}"
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How does blockchain technology work?\",\"blogs\":[]}"
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How does blockchain technology work?\",\"blogs\":[]}"
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How does blockchain technology work?\",\"blogs\":[]}"
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How to plan a budget-friendly international trip?\",\"blogs\":[]}"
+    },
+    {
+      "question": "What is machine learning?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: What is machine learning?\",\"blogs\":[]}"
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "status_code": 500,
+      "error": "HTTP 500: {\"response\":\"Error for Prompt: How does blockchain technology work?\",\"blogs\":[]}"
+    }
+  ]
+}
