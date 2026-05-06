@@ -119,9 +119,12 @@ def process(req: dict[str, str]) -> str:
             response = perform_llm_call(prompt)
             return json.dumps({"response": response, "blogs": resp_blogs_json})
 
+        # filter low-relevance chunks (cosine similarity < 0.5 is noise)
+        relevant_chunks = [c for c in chunks if c.get("score", 0) >= 0.5]
+
         # deduplicate by blog_id, keeping the highest-scoring chunk per blog
         seen_blogs: dict[str, dict] = {}
-        for chunk in chunks:
+        for chunk in (relevant_chunks or chunks):
             blog_id = chunk.get("blog_id", chunk.get("id", ""))
             if not blog_id:
                 continue
