@@ -30,7 +30,7 @@ PROMPT="""Answer the question using ONLY the provided context below. Be concise 
 Answer (concise, factual, use bullet points for lists):"""
 
 
-def chunk_text(text: str, max_chars: int = 2000, overlap_chars: int = 200) -> list[str]:
+def chunk_text(text: str, max_chars: int = 1500, overlap_chars: int = 400) -> list[str]:
     sentences = re.split(r'(?<=[.!?])\s+', text.strip())
     if not sentences:
         return [text]
