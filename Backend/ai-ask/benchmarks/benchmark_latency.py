@@ -1,13 +1,17 @@
 import json
 import time
+import sys
 import argparse
 import statistics
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
-import requests
 from qdrant_client import QdrantClient
 from fastembed import TextEmbedding
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from llm import perform_llm_call, setup_llm
 
 from config import BenchmarkConfig, save_result
 
@@ -51,11 +55,11 @@ def run_latency_benchmark(
     print(f"Connecting to Qdrant at {config.qdrant_url}")
     qdrant_client = QdrantClient(url=config.qdrant_url)
 
-    groq_client = None
+    groq_available = False
     if include_llm:
         try:
-            from groq import Groq
-            groq_client = Groq(api_key=config.groq_api_key)
+            setup_llm(config.llm_mode, config.groq_api_key)
+            groq_available = True
             print("Groq client initialized for LLM latency measurement")
         except Exception as e:
             print(f"Warning: Could not initialize Groq client: {e}")
@@ -97,48 +101,34 @@ Response:
             search_results = qdrant_client.query_points(
                 collection_name=config.qdrant_collection,
                 query=query_vector,
-                limit=3,
+                limit=5,
+                with_payload=True,
             )
             search_ms = (time.perf_counter() - search_start) * 1000
 
-            retrieved_ids = [str(point.id) for point in search_results.points]
+            # deduplicate by blog_id from chunk payloads
+            seen_blogs: set[str] = set()
+            context_parts: list[str] = []
+            for point in search_results.points:
+                payload = point.payload or {}
+                blog_id = payload.get("blog_id", str(point.id))
+                if blog_id and blog_id not in seen_blogs and len(context_parts) < 3:
+                    seen_blogs.add(blog_id)
+                    title = payload.get("title", "")
+                    context_parts.append(
+                        f"Blog Title: {title}\n-------------\nBlog Body:\n{payload.get('text', '')}\n-------------"
+                    )
 
-            fetch_start = time.perf_counter()
-            try:
-                blog_response = requests.get(
-                    f"{config.backend_url}/blogs/embed-id",
-                    json={"embed_ids": retrieved_ids},
-                    timeout=10,
-                )
-                fetch_blogs_ms = (time.perf_counter() - fetch_start) * 1000
-                blogs_data = blog_response.json().get("data", [])
-            except Exception as e:
-                fetch_blogs_ms = (time.perf_counter() - fetch_start) * 1000
-                blogs_data = []
-                print(f"  Warning: Blog fetch failed for q#{q_idx} iter#{iteration}: {e}")
+            fetch_blogs_ms = 0.0
 
             llm_ms = None
-            if include_llm and groq_client and blogs_data:
-                context = ""
-                for blog in blogs_data:
-                    context += f"Blog Title: {blog.get('title', '')}\n-------------\nBlog Body:\n{blog.get('blog_content', '')}\n-------------"
-
+            if include_llm and groq_available and context_parts:
+                context = "\n".join(context_parts)
                 prompt = PROMPT_TEMPLATE.format(blogs_body=context, question=question_text)
 
                 llm_start = time.perf_counter()
                 try:
-                    completion = groq_client.chat.completions.create(
-                        model="openai/gpt-oss-120b",
-                        messages=[{"role": "user", "content": prompt}],
-                        temperature=1,
-                        max_completion_tokens=8192,
-                        top_p=1,
-                        reasoning_effort="low",
-                        stream=True,
-                    )
-                    response_text = ""
-                    for chunk in completion:
-                        response_text += chunk.choices[0].delta.content or ""
+                    perform_llm_call(prompt)
                     llm_ms = (time.perf_counter() - llm_start) * 1000
                 except Exception as e:
                     llm_ms = (time.perf_counter() - llm_start) * 1000
