@@ -104,11 +104,35 @@ def process(req: dict[str, str]) -> str:
     payload_type = req["payload_type"]
 
     if payload_type == "RAG":
+        # primary semantic embedding
         prompt_vectors = embedding_model.embed(req["payload"])
         first = next(iter(prompt_vectors))
         prompt_vector_list = np.asarray(first).tolist()
 
         chunks = get_relevant_chunks(search_query=prompt_vector_list, limit=7)
+
+        # query expansion: extract keywords for a second retrieval pass
+        query_text = req["payload"]
+        keywords = [w for w in query_text.lower().split() if len(w) > 3 and w not in {
+            "what", "when", "where", "which", "that", "this", "with", "from", "they",
+            "have", "been", "were", "does", "about", "there", "their", "would", "could",
+            "should", "other", "some", "these", "those", "then", "than", "also", "into",
+            "over", "after", "before", "between", "through", "during", "without",
+        }]
+        if keywords:
+            kw_query = " ".join(keywords)
+            kw_vectors = embedding_model.embed(kw_query)
+            kw_first = next(iter(kw_vectors))
+            kw_vector_list = np.asarray(kw_first).tolist()
+            kw_chunks = get_relevant_chunks(search_query=kw_vector_list, limit=5)
+
+            # merge: union of both result sets, deduplicated
+            seen_ids = {c["id"] for c in chunks}
+            for c in kw_chunks:
+                if c["id"] not in seen_ids:
+                    seen_ids.add(c["id"])
+                    chunks.append(c)
+            chunks.sort(key=lambda c: c.get("score", 0), reverse=True)
 
         if not chunks:
             resp_blogs_json: list[dict[str, str]] = []
