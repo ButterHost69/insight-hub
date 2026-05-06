@@ -17,16 +17,17 @@ EMBEDDING_PRIORITY = 10
 
 embedding_model : TextEmbedding
 
-PROMPT="""Using the below provided Context answer the following question
+PROMPT="""Answer the question using ONLY the provided context below. Be concise and accurate. If the context does not contain enough information, say so honestly.
+
 <Context>
 {blogs_body}
 </Context>
+
 <Question>
 {question}
 </Question>
 
-Response:
-"""
+Answer (concise, factual, use bullet points for lists):"""
 
 
 def chunk_text(text: str, max_chars: int = 2000, overlap_chars: int = 200) -> list[str]:
