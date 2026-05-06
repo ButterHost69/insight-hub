@@ -42,9 +42,9 @@ def perform_llm_call(prompt: str) -> str:
                     "content": prompt
                 }
             ],
-            temperature=1,
+            temperature=0.3,
             max_completion_tokens=MAX_COMPLETION_TOKENS,
-            top_p=1,
+            top_p=0.9,
             reasoning_effort="low",
             stream=True,
             stop=None,
