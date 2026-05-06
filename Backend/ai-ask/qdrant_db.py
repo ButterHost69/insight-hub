@@ -86,5 +86,6 @@ def get_relevant_chunks(search_query: list[float], limit: int) -> list[dict]:
             "blog_id": payload.get("blog_id", ""),
             "title": payload.get("title", ""),
             "chunk_index": payload.get("chunk_index", 0),
+            "score": point.score,
         })
     return chunks

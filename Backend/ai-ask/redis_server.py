@@ -108,7 +108,7 @@ def process(req: dict[str, str]) -> str:
         first = next(iter(prompt_vectors))
         prompt_vector_list = np.asarray(first).tolist()
 
-        chunks = get_relevant_chunks(search_query=prompt_vector_list, limit=5)
+        chunks = get_relevant_chunks(search_query=prompt_vector_list, limit=7)
 
         if not chunks:
             resp_blogs_json: list[dict[str, str]] = []
@@ -119,14 +119,17 @@ def process(req: dict[str, str]) -> str:
             response = perform_llm_call(prompt)
             return json.dumps({"response": response, "blogs": resp_blogs_json})
 
-        # deduplicate by blog_id to avoid redundant context from same blog
-        seen_blogs: set[str] = set()
-        unique_chunks: list[dict] = []
+        # deduplicate by blog_id, keeping the highest-scoring chunk per blog
+        seen_blogs: dict[str, dict] = {}
         for chunk in chunks:
-            blog_id = chunk.get("blog_id", "")
-            if blog_id and blog_id not in seen_blogs and len(unique_chunks) < 3:
-                seen_blogs.add(blog_id)
-                unique_chunks.append(chunk)
+            blog_id = chunk.get("blog_id", chunk.get("id", ""))
+            if not blog_id:
+                continue
+            if blog_id not in seen_blogs or chunk.get("score", 0) > seen_blogs[blog_id].get("score", 0):
+                seen_blogs[blog_id] = chunk
+
+        # sort by score descending, take top 3
+        unique_chunks = sorted(seen_blogs.values(), key=lambda c: c.get("score", 0), reverse=True)[:3]
 
         context = ""
         resp_blogs_json: list[dict[str, str]] = []
