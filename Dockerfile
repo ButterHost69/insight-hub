@@ -4,15 +4,19 @@ ARG GO_VERSION=1.25.0
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
 WORKDIR /src
 
+ENV GOPROXY=https://proxy.golang.org,direct \
+    GOMODCACHE=/go/pkg/mod
+
 COPY Backend/go.mod Backend/go.sum ./
 
-RUN --mount=type=cache,target=/go/pkg/mod/ \
-    go mod download -x
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 COPY Backend/ .
 
 ARG TARGETARCH
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -o /bin/server .
+RUN --mount=type=cache,target=/go/pkg/mod \
+    CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -o /bin/server .
     
 FROM alpine:latest AS final
 

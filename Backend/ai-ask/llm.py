@@ -1,12 +1,18 @@
+import logging
 from groq import Groq
+
+log = logging.getLogger(__name__)
 
 GroqClient: Groq
 LLM_Mode: str
 
-def setup_llm(mode:str|None, api_key:str="") -> None:
+MAX_COMPLETION_TOKENS = 4000
+
+
+def setup_llm(mode: str | None, api_key: str = "") -> None:
     if mode is None:
         raise Exception("AI_ASK_MODE cannot be None")
-    
+
     global LLM_Mode
     LLM_Mode = mode
 
@@ -22,32 +28,38 @@ def setup_llm(mode:str|None, api_key:str="") -> None:
         )
         return
 
-def perform_llm_call(prompt:str)-> str:
+
+def perform_llm_call(prompt: str) -> str:
     if LLM_Mode == "api":
+        est_input_tokens = len(prompt) // 4
+        log.info(f"📊 LLM call | est input: ~{est_input_tokens} tokens | max output: {MAX_COMPLETION_TOKENS} | total requested: ~{est_input_tokens + MAX_COMPLETION_TOKENS}")
+
         completion = GroqClient.chat.completions.create(
             model="openai/gpt-oss-120b",
             messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
+                {
+                    "role": "user",
+                    "content": prompt
+                }
             ],
             temperature=1,
-            max_completion_tokens=8192,
+            max_completion_tokens=MAX_COMPLETION_TOKENS,
             top_p=1,
             reasoning_effort="low",
             stream=True,
-            stop=None
+            stop=None,
         )
 
         response = ""
         for chunk in completion:
-            response += chunk.choices[0].delta.content if chunk.choices[0].delta.content else ""
-            
+            delta = chunk.choices[0].delta
+            if delta and delta.content:
+                response += delta.content
+
         return response
 
     elif LLM_Mode == "local":
         return "Local Not Setupped"
-    
+
     else:
         return ""

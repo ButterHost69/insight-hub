@@ -55,6 +55,7 @@ func CreateBlog(ctx context.Context, blog *models.Blog) (string, error) {
 			ID:          blog.EmbedID,
 			PayloadType: "Embedding",
 			Payload:     blog.BlogContent,
+			Title:       blog.Title,
 		})
 	}()
 

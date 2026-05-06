@@ -56,9 +56,11 @@ def connect_qdrant(qdrant_url: str, qdrant_collection: str, embedding_dim: int) 
     return False
 
 
-def store_embedding(doc_id: str, text: str, vector: list[float]) -> bool:
+def store_embedding(doc_id: str, text: str, vector: list[float], payload: dict | None = None) -> bool:
     try:
-        point = PointStruct(id=doc_id, vector=vector, payload={"text": text})
+        payload_data = payload or {}
+        payload_data["text"] = text
+        point = PointStruct(id=doc_id, vector=vector, payload=payload_data)
         QdrantDBClient.upsert(collection_name=QdrantCollection, points=[point])
         log.info(f"✅ Stored embedding for doc_id: {doc_id}")
         return True
@@ -67,11 +69,22 @@ def store_embedding(doc_id: str, text: str, vector: list[float]) -> bool:
         return False
 
 
-def get_relevant_blogs(search_query:list[float], limit:int) -> list[str] | None:
+def get_relevant_chunks(search_query: list[float], limit: int) -> list[dict]:
     response = QdrantDBClient.query_points(
         collection_name=QdrantCollection,
-        query=search_query, 
-        limit=limit
-    ) 
+        query=search_query,
+        limit=limit,
+        with_payload=True,
+    )
 
-    return [str(point.id) for point in response.points]
+    chunks = []
+    for point in response.points:
+        payload = point.payload or {}
+        chunks.append({
+            "id": str(point.id),
+            "text": payload.get("text", ""),
+            "blog_id": payload.get("blog_id", ""),
+            "title": payload.get("title", ""),
+            "chunk_index": payload.get("chunk_index", 0),
+        })
+    return chunks
