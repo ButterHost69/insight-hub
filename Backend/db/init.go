@@ -70,7 +70,7 @@ func Init(redisUrl, qdrantUrl, qdrantCollection string) error {
 		log.Println("Qdrant VectorDB is not upto-date")
 		log.Println("Adding All the Blogs on the Redis Queue")
 
-		blogs, err := GetAllBlogs(ctx)
+		blogs, _, err := GetAllBlogs(ctx, 0, "")
 		if err != nil {
 			Close()
 			return fmt.Errorf("Init: could not fetch all blogs using firestore: %w", err)

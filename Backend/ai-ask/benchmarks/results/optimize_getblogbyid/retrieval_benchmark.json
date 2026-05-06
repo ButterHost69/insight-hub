@@ -48,12 +48,12 @@
     }
   },
   "latency": {
-    "mean_ms": 24.28,
-    "p50_ms": 20.66,
-    "p95_ms": 35.98,
-    "p99_ms": 38.97,
-    "min_ms": 19.74,
-    "max_ms": 39.72
+    "mean_ms": 37.01,
+    "p50_ms": 35.51,
+    "p95_ms": 54.13,
+    "p99_ms": 57.8,
+    "min_ms": 20.69,
+    "max_ms": 58.71
   },
   "per_question_results": [
     {
@@ -89,7 +89,7 @@
         0.48172405,
         0.47541913
       ],
-      "latency_ms": 39.715860000796965
+      "latency_ms": 58.714326999961486
     },
     {
       "question": "How does blockchain technology work?",
@@ -124,7 +124,7 @@
         0.5323578,
         0.531656
       ],
-      "latency_ms": 20.283262000702962
+      "latency_ms": 20.690087999810203
     },
     {
       "question": "What are the best practices for writing clean code?",
@@ -160,7 +160,7 @@
         0.5236329,
         0.522374
       ],
-      "latency_ms": 19.73714999985532
+      "latency_ms": 34.31846500006941
     },
     {
       "question": "What are the health benefits of meditation?",
@@ -195,7 +195,7 @@
         0.54259217,
         0.52001786
       ],
-      "latency_ms": 20.65607900112809
+      "latency_ms": 35.80577000047924
     },
     {
       "question": "How to plan a budget-friendly international trip?",
@@ -231,7 +231,7 @@
         0.5237293,
         0.51489455
       ],
-      "latency_ms": 21.021013999416027
+      "latency_ms": 35.51167100022212
     }
   ]
 }

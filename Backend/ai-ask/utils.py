@@ -7,6 +7,7 @@ import os
 @dataclass(frozen=True)
 class Config:
     REDIS_URL: str | None
+    BACKEND_URL: str | None
     REDIS_CHANNEL: str | None
     QDRANT_URL: str | None
     QDRANT_COLLECTION: str | None
@@ -27,9 +28,11 @@ def load_config() -> Config:
     hf_token = os.getenv("HF_TOKEN", None)
     groq_api = os.getenv("GROQ_API", "")
     emb_model_name = os.getenv("EMBEDDING_MODEL_NAME", None)
+    backend_url = os.getenv("BACKEND_URL", "")
     
     return Config(
         REDIS_URL=redis_url, 
+        BACKEND_URL=backend_url,
         REDIS_CHANNEL=redis_channel, 
         QDRANT_URL=qdrant_url, 
         QDRANT_COLLECTION=qdrant_collection, 

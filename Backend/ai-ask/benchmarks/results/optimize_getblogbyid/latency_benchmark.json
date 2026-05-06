@@ -9,26 +9,26 @@
   },
   "summary": {
     "embed_ms": {
-      "mean": 16.55,
-      "median": 16.73,
+      "mean": 18.34,
+      "median": 17.07,
       "p50": 16.67,
-      "p90": 17.11,
-      "p95": 17.14,
-      "p99": 17.29,
-      "min": 15.03,
-      "max": 17.36,
-      "stdev": 0.56
+      "p90": 23.89,
+      "p95": 24.24,
+      "p99": 24.39,
+      "min": 14.22,
+      "max": 24.92,
+      "stdev": 3.49
     },
     "search_ms": {
-      "mean": 2.88,
-      "median": 2.68,
-      "p50": 2.66,
-      "p90": 3.47,
-      "p95": 3.47,
-      "p99": 3.5,
-      "min": 2.22,
-      "max": 3.64,
-      "stdev": 0.46
+      "mean": 5.87,
+      "median": 3.63,
+      "p50": 3.56,
+      "p90": 12.01,
+      "p95": 15.17,
+      "p99": 17.87,
+      "min": 2.31,
+      "max": 18.53,
+      "stdev": 4.66
     },
     "fetch_blogs_ms": {
       "mean": 0.0,
@@ -42,217 +42,217 @@
       "stdev": 0.0
     },
     "total_ms": {
-      "mean": 19.43,
-      "median": 19.37,
-      "p50": 19.33,
-      "p90": 20.43,
-      "p95": 20.55,
-      "p99": 20.71,
-      "min": 17.51,
-      "max": 20.82,
-      "stdev": 0.77
+      "mean": 24.22,
+      "median": 23.55,
+      "p50": 23.4,
+      "p90": 29.7,
+      "p95": 32.76,
+      "p99": 33.61,
+      "min": 16.54,
+      "max": 39.43,
+      "stdev": 5.48
     }
   },
   "measurements": [
     {
       "question": "What is machine learning?",
-      "embed_ms": 15.66,
-      "search_ms": 3.34,
+      "embed_ms": 14.88,
+      "search_ms": 17.87,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 19.02
+      "total_ms": 32.76
     },
     {
       "question": "What is machine learning?",
-      "embed_ms": 16.81,
-      "search_ms": 3.47,
+      "embed_ms": 15.07,
+      "search_ms": 18.53,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 20.29
+      "total_ms": 33.61
     },
     {
       "question": "What is machine learning?",
-      "embed_ms": 15.86,
-      "search_ms": 3.5,
+      "embed_ms": 14.42,
+      "search_ms": 6.26,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 19.37
+      "total_ms": 20.68
     },
     {
       "question": "What is machine learning?",
-      "embed_ms": 17.07,
-      "search_ms": 3.47,
+      "embed_ms": 14.29,
+      "search_ms": 6.62,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 20.55
+      "total_ms": 20.92
     },
     {
       "question": "What is machine learning?",
-      "embed_ms": 16.1,
-      "search_ms": 3.64,
+      "embed_ms": 14.71,
+      "search_ms": 12.01,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 19.74
+      "total_ms": 26.73
     },
     {
       "question": "How does blockchain technology work?",
-      "embed_ms": 17.36,
+      "embed_ms": 17.07,
+      "search_ms": 6.32,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 23.4
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "embed_ms": 16.37,
+      "search_ms": 2.6,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 18.98
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "embed_ms": 14.22,
+      "search_ms": 2.31,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 16.54
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "embed_ms": 15.19,
+      "search_ms": 2.83,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 18.03
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "embed_ms": 19.09,
+      "search_ms": 4.86,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 23.96
+    },
+    {
+      "question": "What are the best practices for writing clean code?",
+      "embed_ms": 20.73,
+      "search_ms": 5.8,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 26.54
+    },
+    {
+      "question": "What are the best practices for writing clean code?",
+      "embed_ms": 24.92,
+      "search_ms": 4.76,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 29.7
+    },
+    {
+      "question": "What are the best practices for writing clean code?",
+      "embed_ms": 23.89,
+      "search_ms": 5.26,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 29.16
+    },
+    {
+      "question": "What are the best practices for writing clean code?",
+      "embed_ms": 24.24,
+      "search_ms": 15.17,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 39.43
+    },
+    {
+      "question": "What are the best practices for writing clean code?",
+      "embed_ms": 24.39,
       "search_ms": 3.44,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 20.82
+      "total_ms": 27.84
     },
     {
-      "question": "How does blockchain technology work?",
-      "embed_ms": 17.29,
-      "search_ms": 3.41,
+      "question": "What are the health benefits of meditation?",
+      "embed_ms": 21.5,
+      "search_ms": 3.63,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 20.71
+      "total_ms": 25.14
     },
     {
-      "question": "How does blockchain technology work?",
-      "embed_ms": 17.11,
+      "question": "What are the health benefits of meditation?",
+      "embed_ms": 18.84,
+      "search_ms": 3.54,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 22.39
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "embed_ms": 20.72,
+      "search_ms": 3.56,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 24.3
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "embed_ms": 20.01,
       "search_ms": 3.31,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 20.43
-    },
-    {
-      "question": "How does blockchain technology work?",
-      "embed_ms": 17.01,
-      "search_ms": 2.36,
-      "fetch_blogs_ms": 0.0,
-      "llm_ms": null,
-      "total_ms": 19.38
-    },
-    {
-      "question": "How does blockchain technology work?",
-      "embed_ms": 16.73,
-      "search_ms": 2.4,
-      "fetch_blogs_ms": 0.0,
-      "llm_ms": null,
-      "total_ms": 19.14
-    },
-    {
-      "question": "What are the best practices for writing clean code?",
-      "embed_ms": 16.29,
-      "search_ms": 2.36,
-      "fetch_blogs_ms": 0.0,
-      "llm_ms": null,
-      "total_ms": 18.66
-    },
-    {
-      "question": "What are the best practices for writing clean code?",
-      "embed_ms": 16.73,
-      "search_ms": 2.35,
-      "fetch_blogs_ms": 0.0,
-      "llm_ms": null,
-      "total_ms": 19.09
-    },
-    {
-      "question": "What are the best practices for writing clean code?",
-      "embed_ms": 16.95,
-      "search_ms": 2.37,
-      "fetch_blogs_ms": 0.0,
-      "llm_ms": null,
-      "total_ms": 19.33
-    },
-    {
-      "question": "What are the best practices for writing clean code?",
-      "embed_ms": 16.19,
-      "search_ms": 3.34,
-      "fetch_blogs_ms": 0.0,
-      "llm_ms": null,
-      "total_ms": 19.54
-    },
-    {
-      "question": "What are the best practices for writing clean code?",
-      "embed_ms": 16.25,
-      "search_ms": 2.66,
-      "fetch_blogs_ms": 0.0,
-      "llm_ms": null,
-      "total_ms": 18.92
+      "total_ms": 23.34
     },
     {
       "question": "What are the health benefits of meditation?",
-      "embed_ms": 16.63,
-      "search_ms": 2.62,
+      "embed_ms": 20.64,
+      "search_ms": 3.2,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 19.25
+      "total_ms": 23.86
     },
     {
-      "question": "What are the health benefits of meditation?",
-      "embed_ms": 17.08,
-      "search_ms": 2.63,
+      "question": "How to plan a budget-friendly international trip?",
+      "embed_ms": 19.84,
+      "search_ms": 3.7,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 19.73
+      "total_ms": 23.55
     },
     {
-      "question": "What are the health benefits of meditation?",
-      "embed_ms": 16.07,
-      "search_ms": 2.68,
-      "fetch_blogs_ms": 0.0,
-      "llm_ms": null,
-      "total_ms": 18.77
-    },
-    {
-      "question": "What are the health benefits of meditation?",
-      "embed_ms": 16.27,
-      "search_ms": 2.58,
-      "fetch_blogs_ms": 0.0,
-      "llm_ms": null,
-      "total_ms": 18.85
-    },
-    {
-      "question": "What are the health benefits of meditation?",
+      "question": "How to plan a budget-friendly international trip?",
       "embed_ms": 16.67,
-      "search_ms": 2.55,
+      "search_ms": 2.83,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 19.24
+      "total_ms": 19.52
     },
     {
       "question": "How to plan a budget-friendly international trip?",
-      "embed_ms": 16.75,
-      "search_ms": 2.77,
+      "embed_ms": 15.38,
+      "search_ms": 2.94,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 19.53
+      "total_ms": 18.33
     },
     {
       "question": "How to plan a budget-friendly international trip?",
-      "embed_ms": 17.14,
-      "search_ms": 2.97,
+      "embed_ms": 15.26,
+      "search_ms": 2.6,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 20.12
+      "total_ms": 17.87
     },
     {
       "question": "How to plan a budget-friendly international trip?",
-      "embed_ms": 16.74,
-      "search_ms": 3.0,
+      "embed_ms": 16.06,
+      "search_ms": 2.82,
       "fetch_blogs_ms": 0.0,
       "llm_ms": null,
-      "total_ms": 19.75
-    },
-    {
-      "question": "How to plan a budget-friendly international trip?",
-      "embed_ms": 15.84,
-      "search_ms": 2.22,
-      "fetch_blogs_ms": 0.0,
-      "llm_ms": null,
-      "total_ms": 18.06
-    },
-    {
-      "question": "How to plan a budget-friendly international trip?",
-      "embed_ms": 15.03,
-      "search_ms": 2.47,
-      "fetch_blogs_ms": 0.0,
-      "llm_ms": null,
-      "total_ms": 17.51
+      "total_ms": 18.89
     }
   ]
 }

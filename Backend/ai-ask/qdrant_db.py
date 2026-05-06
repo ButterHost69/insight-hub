@@ -83,8 +83,8 @@ def get_relevant_chunks(search_query: list[float], limit: int) -> list[dict]:
         chunks.append({
             "id": str(point.id),
             "text": payload.get("text", ""),
-            "blog_id": payload.get("blog_id", ""),
-            "title": payload.get("title", ""),
+            "blog_id": payload.get("blog_id") or None,
+            "title": payload.get("title") or None,
             "chunk_index": payload.get("chunk_index", 0),
             "score": point.score,
         })

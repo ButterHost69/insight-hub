@@ -76,44 +76,137 @@ func GetBlogID(ctx context.Context, title string) (string, error) {
 	return doc.Ref.ID, nil
 }
 
-// GetAllBlogs fetches all blogs from Firestore.
-func GetAllBlogs(ctx context.Context) ([]models.Blog, error) {
+// GetBlogByID retrieves a single blog by its document ID.
+func GetBlogByID(ctx context.Context, id string) (*models.Blog, error) {
 	if FirestoreClient == nil {
 		return nil, errors.New("firestore client is not initialized")
 	}
 
+	doc, err := FirestoreClient.Collection(blogsCollection).Doc(id).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var b models.Blog
+	if err := doc.DataTo(&b); err != nil {
+		return nil, err
+	}
+	b.ID = doc.Ref.ID
+	return &b, nil
+}
+
+// GetBlogByTitle retrieves a single blog by its title.
+func GetBlogByTitle(ctx context.Context, title string) (*models.Blog, error) {
+	if FirestoreClient == nil {
+		return nil, errors.New("firestore client is not initialized")
+	}
+
+	doc, err := FirestoreClient.Collection(blogsCollection).Where("title", "==", title).Limit(1).Documents(ctx).Next()
+	if err != nil {
+		return nil, err
+	}
+
+	var b models.Blog
+	if err := doc.DataTo(&b); err != nil {
+		return nil, err
+	}
+	b.ID = doc.Ref.ID
+	return &b, nil
+}
+
+// GetAllBlogs fetches blogs from Firestore with optional pagination.
+// limit <= 0 fetches all blogs. limit > 0 enables pagination with cursor-based navigation.
+// cursor is the blog ID to start after (empty = first page).
+// Returns blogs, next cursor (empty if no more pages), and error.
+func GetAllBlogs(ctx context.Context, limit int, cursor string) ([]models.Blog, string, error) {
+	if FirestoreClient == nil {
+		return nil, "", errors.New("firestore client is not initialized")
+	}
+
+	query := FirestoreClient.Collection(blogsCollection).OrderBy("created_at", firestore.Desc)
+
+	if cursor != "" {
+		cursorDoc, err := FirestoreClient.Collection(blogsCollection).Doc(cursor).Get(ctx)
+		if err == nil {
+			query = query.StartAfter(cursorDoc)
+		}
+	}
+
+	if limit > 0 {
+		query = query.Limit(limit + 1) // fetch one extra to detect next page
+	}
+
+	iter := query.Documents(ctx)
+
 	var blogs []models.Blog
-	iter := FirestoreClient.Collection(blogsCollection).OrderBy("created_at", firestore.Desc).Documents(ctx)
+	var nextCursor string
+
 	for {
 		doc, err := iter.Next()
 		if err == iterator.Done {
 			break
 		}
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
+
+		if limit > 0 && len(blogs) >= limit {
+			nextCursor = doc.Ref.ID
+			break
+		}
+
 		var b models.Blog
 		if err := doc.DataTo(&b); err != nil {
 			continue
 		}
 		b.ID = doc.Ref.ID
-
-		// Fetch author details
-		userDoc, err := FirestoreClient.Collection("users").Doc(b.AuthorID).Get(ctx)
-		if err == nil {
-			var u models.User
-			if err := userDoc.DataTo(&u); err == nil {
-				b.AuthorName = u.FullName
-				b.AuthorUsername = u.Username
-			}
-		} else {
-			b.AuthorName = "Unknown Author"
-			b.AuthorUsername = "unknown"
-		}
-
 		blogs = append(blogs, b)
 	}
-	return blogs, nil
+
+	if len(blogs) == 0 {
+		return blogs, "", nil
+	}
+
+	// Batch fetch author details (avoids N+1 problem)
+	authorSet := make(map[string]struct{}, len(blogs))
+	for _, b := range blogs {
+		if b.AuthorID != "" {
+			authorSet[b.AuthorID] = struct{}{}
+		}
+	}
+
+	userRefs := make([]*firestore.DocumentRef, 0, len(authorSet))
+	for aid := range authorSet {
+		userRefs = append(userRefs, FirestoreClient.Collection("users").Doc(aid))
+	}
+
+	userMap := make(map[string]*models.User, len(userRefs))
+	if len(userRefs) > 0 {
+		userDocs, err := FirestoreClient.GetAll(ctx, userRefs)
+		if err == nil {
+			for _, ud := range userDocs {
+				if !ud.Exists() {
+					continue
+				}
+				var u models.User
+				if err := ud.DataTo(&u); err == nil {
+					userMap[ud.Ref.ID] = &u
+				}
+			}
+		}
+	}
+
+	for i := range blogs {
+		if u, ok := userMap[blogs[i].AuthorID]; ok {
+			blogs[i].AuthorName = u.FullName
+			blogs[i].AuthorUsername = u.Username
+		} else {
+			blogs[i].AuthorName = "Unknown Author"
+			blogs[i].AuthorUsername = "unknown"
+		}
+	}
+
+	return blogs, nextCursor, nil
 }
 
 // GetBlogCount returns the total number of blogs in Firestore without fetching all documents.
@@ -163,30 +256,25 @@ func TitleExists(ctx context.Context, title string) (bool, error) {
 	return true, nil
 }
 
-// IncrementViews increases the view count for a blog with the given title.
-func IncrementViews(ctx context.Context, title string) error {
+// IncrementViews increases the view count for a blog with the given ID.
+func IncrementViews(ctx context.Context, blogID string) error {
 	if FirestoreClient == nil {
 		return errors.New("firestore client is not initialized")
 	}
 
-	doc, err := FirestoreClient.Collection(blogsCollection).Where("title", "==", title).Limit(1).Documents(ctx).Next()
-	if err != nil {
-		return errors.New("blog not found")
-	}
-
-	_, err = doc.Ref.Update(ctx, []firestore.Update{
+	_, err := FirestoreClient.Collection(blogsCollection).Doc(blogID).Update(ctx, []firestore.Update{
 		{Path: "views", Value: firestore.Increment(1)},
 	})
 	return err
 }
 
 // ToggleLike toggles the like status for a blog and increments/decrements the count.
-func ToggleLike(ctx context.Context, username, title string) (bool, error) {
+func ToggleLike(ctx context.Context, username, blogID string) (bool, error) {
 	if FirestoreClient == nil {
 		return false, errors.New("firestore client is not initialized")
 	}
 
-	doc, err := FirestoreClient.Collection(blogsCollection).Where("title", "==", title).Limit(1).Documents(ctx).Next()
+	doc, err := FirestoreClient.Collection(blogsCollection).Doc(blogID).Get(ctx)
 	if err != nil {
 		return false, errors.New("blog not found")
 	}
@@ -285,12 +373,11 @@ func UpdateBlog(ctx context.Context, blog *models.Blog) error {
 		return errors.New("firestore client is not initialized")
 	}
 
-	doc, err := FirestoreClient.Collection(blogsCollection).Where("title", "==", blog.Title).Limit(1).Documents(ctx).Next()
-	if err != nil {
-		return errors.New("blog not found")
+	if blog.ID == "" {
+		return errors.New("blog ID is required")
 	}
 
-	_, err = doc.Ref.Update(ctx, []firestore.Update{
+	_, err := FirestoreClient.Collection(blogsCollection).Doc(blog.ID).Update(ctx, []firestore.Update{
 		{Path: "blog_content", Value: blog.BlogContent},
 		{Path: "updated_at", Value: time.Now()},
 		{Path: "category", Value: blog.Category},
@@ -394,12 +481,12 @@ func GetBlogsByEmbedIDs(ctx context.Context, embedIDs []string) ([]models.Blog, 
 }
 
 // DeleteBlog deletes a blog post and its comments, and decrements the author's blog count.
-func DeleteBlog(ctx context.Context, title string) error {
+func DeleteBlog(ctx context.Context, blogID string) error {
 	if FirestoreClient == nil {
 		return errors.New("firestore client is not initialized")
 	}
 
-	doc, err := FirestoreClient.Collection(blogsCollection).Where("title", "==", title).Limit(1).Documents(ctx).Next()
+	doc, err := FirestoreClient.Collection(blogsCollection).Doc(blogID).Get(ctx)
 	if err != nil {
 		return errors.New("blog not found")
 	}
@@ -410,7 +497,7 @@ func DeleteBlog(ctx context.Context, title string) error {
 	}
 
 	// Delete comments
-	comments, _ := GetComments(ctx, doc.Ref.ID)
+	comments, _ := GetComments(ctx, blogID)
 	for _, c := range comments {
 		_, _ = FirestoreClient.Collection("comments").Doc(c.CommentID).Delete(ctx)
 	}

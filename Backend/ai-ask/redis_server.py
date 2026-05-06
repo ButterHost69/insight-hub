@@ -6,6 +6,7 @@ from redis.exceptions import ConnectionError
 import time
 import json
 import logging
+import requests
 from fastembed import TextEmbedding
 from qdrant_db import store_embedding, get_relevant_chunks
 from llm import perform_llm_call
@@ -17,7 +18,9 @@ EMBEDDING_PRIORITY = 10
 
 embedding_model : TextEmbedding
 
-PROMPT="""Answer the question using ONLY the provided context below. Be concise and accurate. If the context does not contain enough information, say so honestly.
+BackendURL: str = ""
+
+PROMPT="""Answer the question based on the provided context. Stick to what the context says. Use bullet points for lists.
 
 <Context>
 {blogs_body}
@@ -27,7 +30,7 @@ PROMPT="""Answer the question using ONLY the provided context below. Be concise 
 {question}
 </Question>
 
-Answer (concise, factual, use bullet points for lists):"""
+Answer:"""
 
 
 def chunk_text(text: str, max_chars: int = 1500, overlap_chars: int = 400) -> list[str]:
@@ -104,35 +107,11 @@ def process(req: dict[str, str]) -> str:
     payload_type = req["payload_type"]
 
     if payload_type == "RAG":
-        # primary semantic embedding
         prompt_vectors = embedding_model.embed(req["payload"])
         first = next(iter(prompt_vectors))
         prompt_vector_list = np.asarray(first).tolist()
 
         chunks = get_relevant_chunks(search_query=prompt_vector_list, limit=7)
-
-        # query expansion: extract keywords for a second retrieval pass
-        query_text = req["payload"]
-        keywords = [w for w in query_text.lower().split() if len(w) > 3 and w not in {
-            "what", "when", "where", "which", "that", "this", "with", "from", "they",
-            "have", "been", "were", "does", "about", "there", "their", "would", "could",
-            "should", "other", "some", "these", "those", "then", "than", "also", "into",
-            "over", "after", "before", "between", "through", "during", "without",
-        }]
-        if keywords:
-            kw_query = " ".join(keywords)
-            kw_vectors = embedding_model.embed(kw_query)
-            kw_first = next(iter(kw_vectors))
-            kw_vector_list = np.asarray(kw_first).tolist()
-            kw_chunks = get_relevant_chunks(search_query=kw_vector_list, limit=5)
-
-            # merge: union of both result sets, deduplicated
-            seen_ids = {c["id"] for c in chunks}
-            for c in kw_chunks:
-                if c["id"] not in seen_ids:
-                    seen_ids.add(c["id"])
-                    chunks.append(c)
-            chunks.sort(key=lambda c: c.get("score", 0), reverse=True)
 
         if not chunks:
             resp_blogs_json: list[dict[str, str]] = []
@@ -149,7 +128,7 @@ def process(req: dict[str, str]) -> str:
         # deduplicate by blog_id, keeping the highest-scoring chunk per blog
         seen_blogs: dict[str, dict] = {}
         for chunk in (relevant_chunks or chunks):
-            blog_id = chunk.get("blog_id", chunk.get("id", ""))
+            blog_id = chunk.get("blog_id") or chunk.get("id")
             if not blog_id:
                 continue
             if blog_id not in seen_blogs or chunk.get("score", 0) > seen_blogs[blog_id].get("score", 0):
@@ -158,12 +137,34 @@ def process(req: dict[str, str]) -> str:
         # sort by score descending, take top 3
         unique_chunks = sorted(seen_blogs.values(), key=lambda c: c.get("score", 0), reverse=True)[:3]
 
+        # fetch real blog titles for chunks that don't have them (old Qdrant data)
+        blog_ids_needing_titles = {
+            c.get("blog_id") or c.get("id") for c in unique_chunks
+            if not c.get("title")
+        }
+        title_map: dict[str, str] = {}
+        if blog_ids_needing_titles and BackendURL:
+            try:
+                resp = requests.get(
+                    f"{BackendURL}/blogs/embed-id",
+                    json={"embed_ids": list(blog_ids_needing_titles)},
+                    timeout=5,
+                )
+                if resp.status_code == 200:
+                    blogs = resp.json().get("data", [])
+                    for blog in blogs:
+                        eid = blog.get("embed_id", blog.get("id", ""))
+                        title_map[eid] = blog.get("title", "")
+            except Exception:
+                pass
+
         context = ""
         resp_blogs_json: list[dict[str, str]] = []
         seen_sentences: set[str] = set()
         for i, chunk in enumerate(unique_chunks):
-            title = chunk.get("title", "Untitled")
             text = chunk.get("text", "")
+            blog_id = chunk.get("blog_id") or chunk.get("id")
+            title = chunk.get("title") or title_map.get(blog_id, "") or text[:50].rsplit(" ", 1)[0].strip()
             score = chunk.get("score", 0)
 
             # deduplicate sentences across chunks to avoid redundancy
@@ -177,7 +178,7 @@ def process(req: dict[str, str]) -> str:
             if unique_sentences:
                 text = " ".join(unique_sentences)
 
-            context += f"[Source {i+1}] {title} (relevance: {score:.2f})\n{text}\n\n"
+            context += f"[Source {i+1}] {title}\n{text}\n\n"
             resp_blogs_json.append({
                 "title": title,
                 "slug": title,
@@ -234,7 +235,9 @@ def send_response(req_id: str, result: str = "", error: str = ""):
     RedisClient.expire(req_id, 60)  # cleanup key after 60s
 
 
-def run_server(channel_name: str):
+def run_server(channel_name: str, backend_url: str = ""):
+    global BackendURL
+    BackendURL = backend_url.rstrip("/")
     log.info(
         f"👂 Python worker listening on '{channel_name}' for priority {EMBEDDING_PRIORITY} (Embedding)..."
     )

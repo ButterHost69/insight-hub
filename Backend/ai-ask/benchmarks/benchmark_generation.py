@@ -140,6 +140,37 @@ Response:
             from ragas import evaluate
             from ragas.dataset_schema import SingleTurnSample, EvaluationDataset
             from ragas.metrics import faithfulness, answer_relevancy, context_precision, context_recall
+            from ragas.llms.base import BaseRagasLLM
+            from ragas.run_config import RunConfig
+
+            class GroqRagasLLM(BaseRagasLLM):
+                def __init__(self, api_key, model="openai/gpt-oss-120b"):
+                    super().__init__()
+                    from groq import Groq
+                    self._client = Groq(api_key=api_key)
+                    self._model = model
+
+                def generate_text(self, prompt, n=1, temperature=0.01, stop=None, callbacks=None):
+                    from langchain_core.outputs import LLMResult, Generation
+                    text = prompt.to_string() if hasattr(prompt, "to_string") else str(prompt)
+                    completion = self._client.chat.completions.create(
+                        model=self._model,
+                        messages=[{"role": "user", "content": text}],
+                        temperature=temperature,
+                        max_completion_tokens=1024,
+                        stream=False,
+                    )
+                    result_text = completion.choices[0].message.content or ""
+                    return LLMResult(generations=[[Generation(text=result_text)]])
+
+                async def agenerate_text(self, prompt, n=1, temperature=0.01, stop=None, callbacks=None):
+                    return self.generate_text(prompt, n, temperature, stop, callbacks)
+
+                def is_finished(self, response):
+                    return True
+
+            ragas_llm = GroqRagasLLM(config.groq_api_key)
+            print("Using Groq for RAGAS evaluation")
 
             samples = []
             for r in results:
@@ -156,6 +187,8 @@ Response:
             ragas_result = evaluate(
                 dataset=eval_dataset,
                 metrics=[faithfulness, answer_relevancy, context_precision, context_recall],
+                llm=ragas_llm,
+                run_config=RunConfig(max_retries=3, max_wait=60),
             )
 
             ragas_scores = {}

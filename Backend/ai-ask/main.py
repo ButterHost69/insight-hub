@@ -42,6 +42,6 @@ if __name__ == "__main__":
     
     if config.REDIS_CHANNEL is None:
         raise Exception("REDIS_CHANNEL is None, Please Provide a REDIS_CHANNEL env Variable")
-    run_server(channel_name=config.REDIS_CHANNEL)
+    run_server(channel_name=config.REDIS_CHANNEL, backend_url=config.BACKEND_URL)
     
     close_server()
