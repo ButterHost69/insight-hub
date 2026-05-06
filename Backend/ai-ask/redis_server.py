@@ -136,10 +136,23 @@ def process(req: dict[str, str]) -> str:
 
         context = ""
         resp_blogs_json: list[dict[str, str]] = []
+        seen_sentences: set[str] = set()
         for i, chunk in enumerate(unique_chunks):
             title = chunk.get("title", "Untitled")
             text = chunk.get("text", "")
             score = chunk.get("score", 0)
+
+            # deduplicate sentences across chunks to avoid redundancy
+            sentences = re.split(r'(?<=[.!?])\s+', text)
+            unique_sentences = []
+            for s in sentences:
+                key = s.strip().lower()[:80]
+                if key and key not in seen_sentences:
+                    seen_sentences.add(key)
+                    unique_sentences.append(s)
+            if unique_sentences:
+                text = " ".join(unique_sentences)
+
             context += f"[Source {i+1}] {title} (relevance: {score:.2f})\n{text}\n\n"
             resp_blogs_json.append({
                 "title": title,
