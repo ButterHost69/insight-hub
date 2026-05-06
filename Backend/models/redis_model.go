@@ -4,6 +4,7 @@ type RedisRequest struct {
 	ID          string `json:"id"`
 	PayloadType string `json:"payload_type"` // 1: RAG ; 10: Embedding
 	Payload     string `json:"payload"`
+	Title       string `json:"title"`
 }
 
 type RedisResponse struct {

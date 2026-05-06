@@ -1,0 +1,258 @@
+{
+  "benchmark_type": "latency",
+  "config": {
+    "embedding_model": "nomic-ai/nomic-embed-text-v1.5",
+    "collection": "blog_posts",
+    "num_questions": 5,
+    "num_iterations": 5,
+    "include_llm": false
+  },
+  "summary": {
+    "embed_ms": {
+      "mean": 18.34,
+      "median": 17.07,
+      "p50": 16.67,
+      "p90": 23.89,
+      "p95": 24.24,
+      "p99": 24.39,
+      "min": 14.22,
+      "max": 24.92,
+      "stdev": 3.49
+    },
+    "search_ms": {
+      "mean": 5.87,
+      "median": 3.63,
+      "p50": 3.56,
+      "p90": 12.01,
+      "p95": 15.17,
+      "p99": 17.87,
+      "min": 2.31,
+      "max": 18.53,
+      "stdev": 4.66
+    },
+    "fetch_blogs_ms": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p50": 0.0,
+      "p90": 0.0,
+      "p95": 0.0,
+      "p99": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "stdev": 0.0
+    },
+    "total_ms": {
+      "mean": 24.22,
+      "median": 23.55,
+      "p50": 23.4,
+      "p90": 29.7,
+      "p95": 32.76,
+      "p99": 33.61,
+      "min": 16.54,
+      "max": 39.43,
+      "stdev": 5.48
+    }
+  },
+  "measurements": [
+    {
+      "question": "What is machine learning?",
+      "embed_ms": 14.88,
+      "search_ms": 17.87,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 32.76
+    },
+    {
+      "question": "What is machine learning?",
+      "embed_ms": 15.07,
+      "search_ms": 18.53,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 33.61
+    },
+    {
+      "question": "What is machine learning?",
+      "embed_ms": 14.42,
+      "search_ms": 6.26,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 20.68
+    },
+    {
+      "question": "What is machine learning?",
+      "embed_ms": 14.29,
+      "search_ms": 6.62,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 20.92
+    },
+    {
+      "question": "What is machine learning?",
+      "embed_ms": 14.71,
+      "search_ms": 12.01,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 26.73
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "embed_ms": 17.07,
+      "search_ms": 6.32,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 23.4
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "embed_ms": 16.37,
+      "search_ms": 2.6,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 18.98
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "embed_ms": 14.22,
+      "search_ms": 2.31,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 16.54
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "embed_ms": 15.19,
+      "search_ms": 2.83,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 18.03
+    },
+    {
+      "question": "How does blockchain technology work?",
+      "embed_ms": 19.09,
+      "search_ms": 4.86,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 23.96
+    },
+    {
+      "question": "What are the best practices for writing clean code?",
+      "embed_ms": 20.73,
+      "search_ms": 5.8,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 26.54
+    },
+    {
+      "question": "What are the best practices for writing clean code?",
+      "embed_ms": 24.92,
+      "search_ms": 4.76,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 29.7
+    },
+    {
+      "question": "What are the best practices for writing clean code?",
+      "embed_ms": 23.89,
+      "search_ms": 5.26,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 29.16
+    },
+    {
+      "question": "What are the best practices for writing clean code?",
+      "embed_ms": 24.24,
+      "search_ms": 15.17,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 39.43
+    },
+    {
+      "question": "What are the best practices for writing clean code?",
+      "embed_ms": 24.39,
+      "search_ms": 3.44,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 27.84
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "embed_ms": 21.5,
+      "search_ms": 3.63,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 25.14
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "embed_ms": 18.84,
+      "search_ms": 3.54,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 22.39
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "embed_ms": 20.72,
+      "search_ms": 3.56,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 24.3
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "embed_ms": 20.01,
+      "search_ms": 3.31,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 23.34
+    },
+    {
+      "question": "What are the health benefits of meditation?",
+      "embed_ms": 20.64,
+      "search_ms": 3.2,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 23.86
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "embed_ms": 19.84,
+      "search_ms": 3.7,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 23.55
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "embed_ms": 16.67,
+      "search_ms": 2.83,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 19.52
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "embed_ms": 15.38,
+      "search_ms": 2.94,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 18.33
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "embed_ms": 15.26,
+      "search_ms": 2.6,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 17.87
+    },
+    {
+      "question": "How to plan a budget-friendly international trip?",
+      "embed_ms": 16.06,
+      "search_ms": 2.82,
+      "fetch_blogs_ms": 0.0,
+      "llm_ms": null,
+      "total_ms": 18.89
+    }
+  ]
+}

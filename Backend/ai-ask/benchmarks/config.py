@@ -7,7 +7,7 @@ from pathlib import Path
 
 BENCHMARKS_DIR = Path(__file__).parent
 EVAL_DATASET_PATH = BENCHMARKS_DIR / "eval_dataset.json"
-RESULTS_DIR = BENCHMARKS_DIR / "results"
+RESULTS_DIR = BENCHMARKS_DIR / "results" / "optimize_getblogbyid"
 
 _DOCKER_HOSTS = {"qdrant", "server", "redis"}
 

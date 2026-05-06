@@ -1,11 +1,15 @@
 import json
+import sys
 import argparse
 import time
+from pathlib import Path
 
 import numpy as np
-import requests
 from qdrant_client import QdrantClient
 from fastembed import TextEmbedding
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from llm import perform_llm_call, setup_llm
 
 from config import BenchmarkConfig, save_result
 
@@ -30,8 +34,7 @@ def run_generation_benchmark(
     qdrant_client = QdrantClient(url=config.qdrant_url)
 
     try:
-        from groq import Groq
-        groq_client = Groq(api_key=config.groq_api_key)
+        setup_llm(config.llm_mode, config.groq_api_key)
         print("Groq client initialized")
     except Exception as e:
         print(f"Error: Could not initialize Groq client: {e}")
@@ -77,33 +80,29 @@ Response:
         search_results = qdrant_client.query_points(
             collection_name=config.qdrant_collection,
             query=query_vector,
-            limit=3,
+            limit=5,
+            with_payload=True,
         )
         retrieval_time = time.perf_counter() - search_start
 
         retrieved_ids = [str(point.id) for point in search_results.points]
-        retrieved_texts = [point.payload.get("text", "") for point in search_results.points]
 
-        blog_ids = []
-        blog_titles = []
-        context_parts = []
-
-        try:
-            blog_response = requests.get(
-                f"{config.backend_url}/blogs/embed-id",
-                json={"embed_ids": retrieved_ids},
-                timeout=10,
-            )
-            blogs_data = blog_response.json().get("data", [])
-            for blog in blogs_data:
-                blog_ids.append(blog.get("embed_id", blog.get("id", "")))
-                blog_titles.append(blog.get("title", ""))
+        # deduplicate by blog_id, keep top 3 unique blogs
+        seen_blogs: set[str] = set()
+        context_parts: list[str] = []
+        blog_ids: list[str] = []
+        blog_titles: list[str] = []
+        for point in search_results.points:
+            payload = point.payload or {}
+            blog_id = payload.get("blog_id", str(point.id))
+            if blog_id and blog_id not in seen_blogs and len(context_parts) < 3:
+                seen_blogs.add(blog_id)
+                blog_ids.append(blog_id)
+                title = payload.get("title", "")
+                blog_titles.append(title)
                 context_parts.append(
-                    f"Blog Title: {blog.get('title', '')}\n-------------\nBlog Body:\n{blog.get('blog_content', '')}\n-------------"
+                    f"Blog Title: {title}\n-------------\nBlog Body:\n{payload.get('text', '')}\n-------------"
                 )
-        except Exception as e:
-            print(f"  Warning: Blog fetch failed for question {i}: {e}")
-            context_parts = retrieved_texts
 
         context = "\n".join(context_parts) if context_parts else "No context available"
 
@@ -111,23 +110,14 @@ Response:
 
         llm_start = time.perf_counter()
         try:
-            completion = groq_client.chat.completions.create(
-                model="openai/gpt-oss-120b",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=1,
-                max_completion_tokens=8192,
-                top_p=1,
-                reasoning_effort="low",
-                stream=False,
-            )
-            generated_answer = completion.choices[0].message.content or ""
+            generated_answer = perform_llm_call(prompt)
             llm_time = time.perf_counter() - llm_start
         except Exception as e:
             print(f"  Warning: LLM call failed for question {i}: {e}")
             generated_answer = f"ERROR: {e}"
             llm_time = 0
 
-        hit = any(rid in relevant_ids for rid in retrieved_ids)
+        hit = any(bid in relevant_ids for bid in blog_ids)
 
         results.append({
             "question": question_text,
@@ -150,6 +140,37 @@ Response:
             from ragas import evaluate
             from ragas.dataset_schema import SingleTurnSample, EvaluationDataset
             from ragas.metrics import faithfulness, answer_relevancy, context_precision, context_recall
+            from ragas.llms.base import BaseRagasLLM
+            from ragas.run_config import RunConfig
+
+            class GroqRagasLLM(BaseRagasLLM):
+                def __init__(self, api_key, model="openai/gpt-oss-120b"):
+                    super().__init__()
+                    from groq import Groq
+                    self._client = Groq(api_key=api_key)
+                    self._model = model
+
+                def generate_text(self, prompt, n=1, temperature=0.01, stop=None, callbacks=None):
+                    from langchain_core.outputs import LLMResult, Generation
+                    text = prompt.to_string() if hasattr(prompt, "to_string") else str(prompt)
+                    completion = self._client.chat.completions.create(
+                        model=self._model,
+                        messages=[{"role": "user", "content": text}],
+                        temperature=temperature,
+                        max_completion_tokens=1024,
+                        stream=False,
+                    )
+                    result_text = completion.choices[0].message.content or ""
+                    return LLMResult(generations=[[Generation(text=result_text)]])
+
+                async def agenerate_text(self, prompt, n=1, temperature=0.01, stop=None, callbacks=None):
+                    return self.generate_text(prompt, n, temperature, stop, callbacks)
+
+                def is_finished(self, response):
+                    return True
+
+            ragas_llm = GroqRagasLLM(config.groq_api_key)
+            print("Using Groq for RAGAS evaluation")
 
             samples = []
             for r in results:
@@ -166,6 +187,8 @@ Response:
             ragas_result = evaluate(
                 dataset=eval_dataset,
                 metrics=[faithfulness, answer_relevancy, context_precision, context_recall],
+                llm=ragas_llm,
+                run_config=RunConfig(max_retries=3, max_wait=60),
             )
 
             ragas_scores = {}

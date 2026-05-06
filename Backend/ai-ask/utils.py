@@ -28,10 +28,11 @@ def load_config() -> Config:
     hf_token = os.getenv("HF_TOKEN", None)
     groq_api = os.getenv("GROQ_API", "")
     emb_model_name = os.getenv("EMBEDDING_MODEL_NAME", None)
-    backend_url = os.getenv("BACKEND_URL", None)
+    backend_url = os.getenv("BACKEND_URL", "")
     
     return Config(
         REDIS_URL=redis_url, 
+        BACKEND_URL=backend_url,
         REDIS_CHANNEL=redis_channel, 
         QDRANT_URL=qdrant_url, 
         QDRANT_COLLECTION=qdrant_collection, 
@@ -40,5 +41,4 @@ def load_config() -> Config:
         HF_TOKEN=hf_token, 
         GROQ_API=groq_api, 
         EMBEDDING_MODEL_NAME=emb_model_name,
-        BACKEND_URL=backend_url,
     )

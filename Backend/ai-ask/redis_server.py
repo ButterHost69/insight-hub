@@ -1,4 +1,5 @@
 import os
+import re
 import numpy as np
 import redis
 from redis.exceptions import ConnectionError
@@ -7,7 +8,7 @@ import json
 import logging
 import requests
 from fastembed import TextEmbedding
-from qdrant_db import store_embedding, get_relevant_blogs
+from qdrant_db import store_embedding, get_relevant_chunks
 from llm import perform_llm_call
 
 log = logging.getLogger(__name__)
@@ -17,18 +18,51 @@ EMBEDDING_PRIORITY = 10
 
 embedding_model : TextEmbedding
 
-BackendURL:str
+BackendURL: str = ""
 
-PROMPT="""Using the below provided Context answer the following question
+PROMPT="""Answer the question based on the provided context. Stick to what the context says. Use bullet points for lists.
+
 <Context>
 {blogs_body}
 </Context>
+
 <Question>
 {question}
 </Question>
 
-Response:
-"""
+Answer:"""
+
+
+def chunk_text(text: str, max_chars: int = 1500, overlap_chars: int = 400) -> list[str]:
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    if not sentences:
+        return [text]
+
+    chunks: list[str] = []
+    current_chunk: list[str] = []
+    current_len = 0
+
+    for sentence in sentences:
+        sentence_len = len(sentence)
+        if current_len + sentence_len > max_chars and current_chunk:
+            chunks.append(" ".join(current_chunk))
+            overlap_len = 0
+            overlap_sentences: list[str] = []
+            for s in reversed(current_chunk):
+                if overlap_len + len(s) > overlap_chars:
+                    break
+                overlap_sentences.insert(0, s)
+                overlap_len += len(s)
+            current_chunk = overlap_sentences
+            current_len = overlap_len
+
+        current_chunk.append(sentence)
+        current_len += sentence_len
+
+    if current_chunk:
+        chunks.append(" ".join(current_chunk))
+
+    return chunks
 
 
 def init_embedding_model(model_name:str):
@@ -73,62 +107,119 @@ def process(req: dict[str, str]) -> str:
     payload_type = req["payload_type"]
 
     if payload_type == "RAG":
-        # Create Embeddings of the Input Prompt
         prompt_vectors = embedding_model.embed(req["payload"])
         first = next(iter(prompt_vectors))
-        prompt_vector_list = np.asarray(first).tolist() 
-        
-        # Get relevant Blogs.
-        blog_embed_ids = get_relevant_blogs(search_query=prompt_vector_list, limit=3)
+        prompt_vector_list = np.asarray(first).tolist()
 
-        # Fetch Those Blogs details
-        url = BackendURL + "blogs/embed-id"
-        payload = {"embed_ids": blog_embed_ids}
-        response = requests.get(url, json=payload).json()
-        
-        if response["success"] != True:
-            raise Exception(f"Could Not Fetch Blog Details Properly, got response['success']: {response["success"]} need bool:True")
-            
-        blogs = response.get("data")
-        resp_blogs_json: list[dict[str, str]] = []
-        context = ""
-        for blog in blogs:
-            context += f"Blog Title: {blog["title"]}\n-------------\nBlog Body:\n{blog["blog_content"]}\n-------------"
-            resp_blogs_json.append(
-                {
-                    "title":blog["title"],
-                    # TODO: Make it to blog["id"] -> but have to render the blogs by id too.
-                    "slug":blog["title"],
-                }
+        chunks = get_relevant_chunks(search_query=prompt_vector_list, limit=7)
+
+        if not chunks:
+            resp_blogs_json: list[dict[str, str]] = []
+            prompt = PROMPT.format(
+                blogs_body="No relevant content found.",
+                question=req["payload"],
             )
-        
-        # Send the Request to the LLM
-        prompt = PROMPT.format(
-            blogs_body = context,
-            question = req["payload"],
-        )
-        
-        response = perform_llm_call(prompt)
+            response = perform_llm_call(prompt)
+            return json.dumps({"response": response, "blogs": resp_blogs_json})
 
-        # Send the Response
+        # filter low-relevance chunks (cosine similarity < 0.5 is noise)
+        relevant_chunks = [c for c in chunks if c.get("score", 0) >= 0.5]
+
+        # deduplicate by blog_id, keeping the highest-scoring chunk per blog
+        seen_blogs: dict[str, dict] = {}
+        for chunk in (relevant_chunks or chunks):
+            blog_id = chunk.get("blog_id") or chunk.get("id")
+            if not blog_id:
+                continue
+            if blog_id not in seen_blogs or chunk.get("score", 0) > seen_blogs[blog_id].get("score", 0):
+                seen_blogs[blog_id] = chunk
+
+        # sort by score descending, take top 3
+        unique_chunks = sorted(seen_blogs.values(), key=lambda c: c.get("score", 0), reverse=True)[:3]
+
+        # fetch real blog titles for chunks that don't have them (old Qdrant data)
+        blog_ids_needing_titles = {
+            c.get("blog_id") or c.get("id") for c in unique_chunks
+            if not c.get("title")
+        }
+        title_map: dict[str, str] = {}
+        if blog_ids_needing_titles and BackendURL:
+            try:
+                resp = requests.get(
+                    f"{BackendURL}/blogs/embed-id",
+                    json={"embed_ids": list(blog_ids_needing_titles)},
+                    timeout=5,
+                )
+                if resp.status_code == 200:
+                    blogs = resp.json().get("data", [])
+                    for blog in blogs:
+                        eid = blog.get("embed_id", blog.get("id", ""))
+                        title_map[eid] = blog.get("title", "")
+            except Exception:
+                pass
+
+        context = ""
+        resp_blogs_json: list[dict[str, str]] = []
+        seen_sentences: set[str] = set()
+        for i, chunk in enumerate(unique_chunks):
+            text = chunk.get("text", "")
+            blog_id = chunk.get("blog_id") or chunk.get("id")
+            title = chunk.get("title") or title_map.get(blog_id, "") or text[:50].rsplit(" ", 1)[0].strip()
+            score = chunk.get("score", 0)
+
+            # deduplicate sentences across chunks to avoid redundancy
+            sentences = re.split(r'(?<=[.!?])\s+', text)
+            unique_sentences = []
+            for s in sentences:
+                key = s.strip().lower()[:80]
+                if key and key not in seen_sentences:
+                    seen_sentences.add(key)
+                    unique_sentences.append(s)
+            if unique_sentences:
+                text = " ".join(unique_sentences)
+
+            context += f"[Source {i+1}] {title}\n{text}\n\n"
+            resp_blogs_json.append({
+                "title": title,
+                "slug": title,
+            })
+
+        prompt = PROMPT.format(
+            blogs_body=context,
+            question=req["payload"],
+        )
+
+        response = perform_llm_call(prompt)
         return json.dumps({"response": response, "blogs": resp_blogs_json})
 
     elif payload_type == "Embedding":
         doc_id = req.get("id", "")
         text = req.get("payload", "")
+        title = req.get("title", "")
 
-        vectors = embedding_model.embed(text)
-        first = next(iter(vectors))
-        vector_list = np.asarray(first).tolist() 
+        chunks = chunk_text(text)
+        for i, chunk in enumerate(chunks):
+            vectors = embedding_model.embed(chunk)
+            first = next(iter(vectors))
+            vector_list = np.asarray(first).tolist()
 
-        success = store_embedding(doc_id, text, vector_list)
-
-        if success:
-            return json.dumps(
-                {"status": "success", "doc_id": doc_id, "vector_dim": len(vector_list)}
+            chunk_id = f"{doc_id}_{i}"
+            store_embedding(
+                chunk_id,
+                chunk,
+                vector_list,
+                payload={
+                    "blog_id": doc_id,
+                    "chunk_index": i,
+                    "title": title,
+                },
             )
-        else:
-            raise Exception("Failed to store embedding in Qdrant")
+
+        return json.dumps({
+            "status": "success",
+            "doc_id": doc_id,
+            "chunks": len(chunks),
+        })
 
     else:
         raise ValueError(f"Unknown payload type: {payload_type}")
@@ -144,9 +235,9 @@ def send_response(req_id: str, result: str = "", error: str = ""):
     RedisClient.expire(req_id, 60)  # cleanup key after 60s
 
 
-def run_server(channel_name: str, backend_url:str):
+def run_server(channel_name: str, backend_url: str = ""):
     global BackendURL
-    BackendURL = backend_url
+    BackendURL = backend_url.rstrip("/")
     log.info(
         f"👂 Python worker listening on '{channel_name}' for priority {EMBEDDING_PRIORITY} (Embedding)..."
     )

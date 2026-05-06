@@ -42,9 +42,6 @@ if __name__ == "__main__":
     
     if config.REDIS_CHANNEL is None:
         raise Exception("REDIS_CHANNEL is None, Please Provide a REDIS_CHANNEL env Variable")
-
-    if config.BACKEND_URL is None:
-        raise Exception("BACKEND_URL is None, Please Provide a BACKEND_URL env Variable")
     run_server(channel_name=config.REDIS_CHANNEL, backend_url=config.BACKEND_URL)
     
     close_server()

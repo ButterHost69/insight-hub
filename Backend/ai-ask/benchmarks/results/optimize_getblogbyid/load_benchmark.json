@@ -1,0 +1,36 @@
+{
+  "benchmark_type": "load",
+  "config": {
+    "num_concurrent": 5,
+    "num_requests": 20,
+    "timeout": 60,
+    "backend_url": "http://localhost:6969/",
+    "ramp_up": false
+  },
+  "summary": {
+    "total_requests": 20,
+    "successful": 20,
+    "failed": 0,
+    "success_rate": 1.0,
+    "wall_time_s": 49.05,
+    "requests_per_second": 0.41
+  },
+  "latency_all": {
+    "mean_ms": 10048.21,
+    "median_ms": 7783.63,
+    "p90_ms": 22668.75,
+    "p95_ms": 0,
+    "p99_ms": 0,
+    "min_ms": 725.6,
+    "max_ms": 28684.16,
+    "stdev_ms": 8439.39
+  },
+  "latency_successful": {
+    "mean_ms": 10048.21,
+    "median_ms": 7783.63,
+    "p95_ms": 0,
+    "min_ms": 725.6,
+    "max_ms": 28684.16
+  },
+  "errors": []
+}

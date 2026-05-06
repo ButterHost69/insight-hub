@@ -16,6 +16,7 @@ dependencies = [
     { name = "fastembed" },
     { name = "groq" },
     { name = "qdrant-client" },
+    { name = "ragas" },
     { name = "redis" },
     { name = "requests" },
 ]
@@ -31,6 +32,7 @@ requires-dist = [
     { name = "fastembed", specifier = ">=0.7.4" },
     { name = "groq", specifier = ">=1.1.1" },
     { name = "qdrant-client", specifier = ">=1.17.0" },
+    { name = "ragas", specifier = ">=0.4.3" },
     { name = "ragas", marker = "extra == 'benchmark'", specifier = ">=0.4.3" },
     { name = "redis", specifier = ">=7.3.0" },
     { name = "requests", specifier = ">=2.32.5" },

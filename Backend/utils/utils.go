@@ -35,9 +35,13 @@ type AppConfig struct {
 	RedisUrl string
 }
 
-func LoadConfig() (*AppConfig, error) {
-	if err := godotenv.Load(".env"); err != nil {
-		return nil, fmt.Errorf("error loading .env file : %v", err)
+func LoadConfig(pprof bool) (*AppConfig, error) {
+	envFile := ".env"
+	if pprof {
+		envFile = ".env.pprof"
+	}
+	if err := godotenv.Load(envFile); err != nil {
+		return nil, fmt.Errorf("error loading %s file : %v", envFile, err)
 	}
 
 	ServerPortStr := os.Getenv("SERVER_PORT")

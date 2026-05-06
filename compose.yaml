@@ -14,7 +14,7 @@ services:
       - 6379:6379
     volumes:
       - redis-data:/data
-    profiles: ["model_local", "model_api"]
+    profiles: ["model_local", "model_api", "server_profile"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -28,7 +28,7 @@ services:
       - "6334:6334"
     volumes:
       - qdrant-data:/qdrant/storage
-    profiles: ["model_local", "model_api"]
+    profiles: ["model_local", "model_api", "server_profile"]
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6333/healthz"]
       interval: 10s
@@ -109,7 +109,38 @@ services:
         condition: service_healthy
       qdrant:
         condition: service_started
-  
+
+  server-profiled:
+    build:
+      context: .
+      target: final
+    command: ["--pprof"]
+    ports:
+      - 6969:6969
+    volumes:
+      - .env.pprof:/app/.env.pprof
+    profiles: ["server_profile"]
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6969/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  flamegraph:
+    image: golang:1.25-alpine
+    entrypoint: ["/bin/sh", "-c", "apk add --no-cache graphviz && exec go tool pprof -http=0.0.0.0:8081 http://server-profiled:6969/debug/pprof/profile?seconds=30"]
+    ports:
+      - "8081:8081"
+    profiles: ["server_profile"]
+    depends_on:
+      server-profiled:
+        condition: service_healthy
+
 volumes:
   redis-data:
   qdrant-data:
