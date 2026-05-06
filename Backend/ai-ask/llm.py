@@ -6,7 +6,7 @@ log = logging.getLogger(__name__)
 GroqClient: Groq
 LLM_Mode: str
 
-MAX_COMPLETION_TOKENS = 4000
+MAX_COMPLETION_TOKENS = 2500
 
 
 def setup_llm(mode: str | None, api_key: str = "") -> None:
@@ -45,7 +45,6 @@ def perform_llm_call(prompt: str) -> str:
             temperature=0.3,
             max_completion_tokens=MAX_COMPLETION_TOKENS,
             top_p=0.9,
-            reasoning_effort="low",
             stream=True,
             stop=None,
         )
