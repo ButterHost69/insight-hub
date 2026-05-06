@@ -136,10 +136,11 @@ def process(req: dict[str, str]) -> str:
 
         context = ""
         resp_blogs_json: list[dict[str, str]] = []
-        for chunk in unique_chunks:
+        for i, chunk in enumerate(unique_chunks):
             title = chunk.get("title", "Untitled")
             text = chunk.get("text", "")
-            context += f"Blog Title: {title}\n-------------\nBlog Body:\n{text}\n-------------"
+            score = chunk.get("score", 0)
+            context += f"[Source {i+1}] {title} (relevance: {score:.2f})\n{text}\n\n"
             resp_blogs_json.append({
                 "title": title,
                 "slug": title,
